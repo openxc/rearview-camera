@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     >
     
+   <ImageView
+    android:id="@+id/focusdashboard"
+      android:contentDescription="@drawable/focusdashboard"
+      android:src="@drawable/focusdashboard"
+      android:layout_gravity="center"
+     android:layout_width="30dp"
+    android:layout_height="20dp" />
 
-</ImageView>
+</LinearLayout>
