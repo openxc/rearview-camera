@@ -2,9 +2,10 @@ package com.camera.simplewebcam;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.RectF;
+import android.graphics.Rect;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -17,7 +18,9 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	private SurfaceHolder holder;
     Thread mainLoop = null;
 	private Bitmap bmp=null;
-	private Bitmap bmp2=null;
+	private Bitmap bmpLines=null;
+	private Bitmap bmpIbook=null;
+	private Bitmap bmpWarningText=null;
 	
 	private static final String TAG = "CameraPreview";
 
@@ -39,15 +42,24 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	// The following variables are used to draw camera images.
     private int winWidth=0;
     private int winHeight=0;
-    private RectF rect;
+    private Rect rect;
     private int dw, dh;
     public float screenHeight;
     public float screenWidth;
     private float rate;
-    private float screenToBmpHeightRatio;
-    private float screenToBmpWidthRatio;
-    private float newWidth;
-    private float newHeight;
+    private float screenToBmpHeightRatio=0;
+    private float screenToBmpWidthRatio=0;
+    private float screenToOverlayHeightRatio=0;
+    private float screenToOverlayWidthRatio=0;
+    private float newBmpHeight=0;
+    private float newBmpWidth=0;
+    private float newOverlayHeight=0;
+    private float newOverlayWidth=0;
+    private float ibookHorizontalTranslation=0;
+    private float ibookVerticalTranslation=0;
+    private float transformedIbookWidth;
+    private float warningTextHorizontalTranslation=0;
+    private float warningTextVerticalTranslation=0;
   
     // JNI functions
     public native int prepareCamera(int videoid);
@@ -80,9 +92,16 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     		   
     		   // camera image to bmp
     		   pixeltobmp(bmp);
+    		   //pixeltobmp(bmpLines);
+    		   
+    		   
+    		   
+    		   //rect = new RectF()
         	
     		   Canvas canvas = getHolder().lockCanvas();
+    		   
     		   if (canvas != null) {
+    			             		
     			  //obtain screen dimensions
     			   DisplayMetrics metrics = context.getResources().getDisplayMetrics();
     			   screenWidth = metrics.widthPixels;
@@ -92,26 +111,53 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     			   screenToBmpWidthRatio = screenWidth/(float)bmp.getWidth();
     			   screenToBmpHeightRatio = screenHeight/(float)bmp.getHeight();
     			   
-    			   Log.w(TAG, "Screen Height is " + screenHeight);
-    			   Log.w(TAG, "Bmp Height is " + bmp.getHeight());
-    			   Log.w(TAG, "Height Ratio is " + screenToBmpHeightRatio);
-    			   
-    			   Log.w(TAG, "Screen Width is " + screenWidth);
-    			   Log.w(TAG, "Bmp Width is " + bmp.getWidth());
-    			   Log.w(TAG, "Width Ratio is " + screenToBmpWidthRatio);
-    			   
     			   //adjust bmp to match screen size
-    			   newWidth = screenToBmpWidthRatio*bmp.getWidth();
-    			   newHeight = screenToBmpHeightRatio*bmp.getHeight();
+    			   newBmpWidth = screenToBmpWidthRatio*bmp.getWidth();
+    			   newBmpHeight = screenToBmpHeightRatio*bmp.getHeight();
     			  
     			   //adjust size and flip bmp horizontally with matrix
-    			   Matrix matrix = new Matrix();
-    			   matrix.preScale(-screenToBmpWidthRatio, screenToBmpHeightRatio);
-    			   matrix.postTranslate((float)(0.5*screenWidth)+(float)(0.5*newWidth),
-            			(float)(0.5*screenHeight)-(float)(0.5*newHeight));
+    			   Matrix cameraFeedMatrix = new Matrix();
+    			   cameraFeedMatrix.preScale(-screenToBmpWidthRatio, screenToBmpHeightRatio);
+    			   cameraFeedMatrix.postTranslate((float)(0.5*screenWidth)+(float)(0.5*newBmpWidth),
+            			(float)(0.5*screenHeight)-(float)(0.5*newBmpHeight));
             	
-    			   // draw camera bmp on canvas
-    			   canvas.drawBitmap(bmp, matrix, null);
+    			   //compute ratio between screen and Overlay
+    			   screenToOverlayWidthRatio = screenWidth/(float)bmpLines.getWidth();
+    			   screenToOverlayHeightRatio = (float)0.35*screenHeight/(float)bmpLines.getHeight();
+    			   
+    			   //adjust bmpLines accordingly to screen size
+    			   newOverlayWidth = screenToOverlayWidthRatio*bmpLines.getWidth();
+    			   newOverlayHeight = screenToOverlayHeightRatio*bmpLines.getHeight();
+    			   
+    			   
+    			   Matrix overlayMatrix = new Matrix();
+    			   overlayMatrix.preScale(-screenToOverlayWidthRatio, screenToOverlayHeightRatio);
+    			   overlayMatrix.postTranslate((float)(0.5*screenWidth)+(float)(0.5*newOverlayWidth), 
+    					   (float)(0.5*screenHeight)-(float)(0.25*newOverlayHeight));
+    			   
+    			   //place ibook
+    			   Matrix ibookMatrix = new Matrix();
+    			   ibookHorizontalTranslation = (float)0.05*screenWidth;
+    			   ibookVerticalTranslation = 20;
+    			   ibookMatrix.preScale((float)0.5, (float)0.5);
+    			   ibookMatrix.postTranslate(ibookHorizontalTranslation, ibookVerticalTranslation);
+    			   transformedIbookWidth = (float)0.5*bmpIbook.getWidth();
+    			   
+    			     			   
+    			   //place PleaseCheckSurroundings
+    			   Matrix warningTextMatrix = new Matrix();
+    			   warningTextHorizontalTranslation = ibookHorizontalTranslation + (float)1.5*transformedIbookWidth;
+    			   warningTextVerticalTranslation = ibookVerticalTranslation;
+    			   warningTextMatrix.preScale((float)0.5, (float)0.5);
+    			   warningTextMatrix.postTranslate(warningTextHorizontalTranslation, warningTextVerticalTranslation);
+    			   
+    			   
+    			   // draw bmps to canvas
+    			   canvas.drawBitmap(bmp, cameraFeedMatrix, null);
+    			   canvas.drawBitmap(bmpLines, overlayMatrix, null);
+    			   canvas.drawBitmap(bmpIbook, ibookMatrix, null);
+    			   canvas.drawBitmap(bmpWarningText, warningTextMatrix, null);
+    			   
     			   getHolder().unlockCanvasAndPost(canvas); 
     		   }
 
@@ -122,7 +168,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     	   }
      	}
        	else {
-    	   Log.w(TAG, "No Camera Attached");
+    	   Log.w(TAG, "No Camera Connected");
        	}
     }
 
@@ -132,8 +178,20 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		if(bmp==null){
 			
 			bmp = Bitmap.createBitmap(IMG_WIDTH, IMG_HEIGHT, Bitmap.Config.ARGB_8888);
-						
+			
 		}
+		if(bmpLines == null){
+			bmpLines = BitmapFactory.decodeResource(getResources(), R.drawable.linesoverlay); 
+		}
+		
+		if(bmpIbook == null){
+			bmpIbook = BitmapFactory.decodeResource(getResources(), R.drawable.ibook);
+		}
+		
+		if(bmpWarningText == null){
+			bmpWarningText = BitmapFactory.decodeResource(getResources(), R.drawable.pleasechecksurroundings);
+		}
+		
 		// /dev/videox (x=cameraId + cameraBase) is used
 		int ret = prepareCameraWithBase(cameraId, cameraBase);
 		

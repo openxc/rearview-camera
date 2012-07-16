@@ -1,6 +1,10 @@
 package com.camera.simplewebcam;
 
+import com.openxc.VehicleManager;
+
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 public class Main extends Activity {
@@ -10,17 +14,12 @@ public class Main extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-	
-		
-		
-			cp = new CameraPreview(this);
-			setContentView(cp);
-			//cp.setBackgroundColor(0x99FF0000);
-			
-		
-		
+		cp = new CameraPreview(this);
+		setContentView(cp);
 		
 	}
+	
+	
+	
 	
 }
