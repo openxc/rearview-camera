@@ -35,29 +35,17 @@ public class VehicleMonitoringService extends Service {
 	                	
 	        				TransmissionGearString = status.getValue().enumValue().toString();
 	        				
-	        				if (TransmissionGearString =="FIRST"){
-	        					Intent reversedBroadcastIntent = new Intent(ACTION_VEHICLE_REVERSED);
-	        	                sendBroadcast(reversedBroadcastIntent);
-	        	                Log.i(TAG, "Vehicle REVERSED Broadcast Intent Sent");
-	        				    
-	        	                /*Intent launchIntent = new Intent(VehicleMonitoringService.this, Main.class);
+	        				if (TransmissionGearString =="REVERSE"){
+	        					Intent launchIntent = new Intent(VehicleMonitoringService.this, Main.class);
 	        	         		launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	        	                VehicleMonitoringService.this.startActivity(launchIntent);
-	        	                Log.i(TAG, "Activity Launched");*/
+	        	                Log.i(TAG, "Activity Launched");
 	        				}
-	        				
 	        				else {
-	        					Intent unreversedBroadcastIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
-	        	                sendBroadcast(unreversedBroadcastIntent);
+	        					Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
+	        	                sendBroadcast(unreversedIntent);
 	        	                Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
-
-	     
-	        					/*Intent closeIntent = new Intent(VehicleMonitoringService.this, Main.class);
-	        					closeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-	        			 		VehicleMonitoringService.this.startActivity(closeIntent);
-	        					Log.w(TAG, "Camera Activity Closed");
-	        					//VehicleMonitoringService.this.finish();
-	        					*/
+	        				
 	        				}
 	                	}
 	        		});
@@ -89,7 +77,6 @@ public class VehicleMonitoringService extends Service {
 
 	@Override
 	public IBinder onBind(Intent intent) {
-	    
 		return null;
 	}
 	

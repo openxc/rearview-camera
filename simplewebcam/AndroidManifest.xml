@@ -21,16 +21,6 @@
               <service android:name="com.openxc.VehicleManager"/>
             </intent-filter>
         </receiver>
-        <receiver android:name="LaunchReceiver">
-            <intent-filter>
-                <action android:name="com.ford.openxc.VEHICLE_REVERSED"/>
-            </intent-filter>
-        </receiver>
-        <receiver android:name="CloseReceiver">
-            <intent-filter>
-                <action android:name="com.ford.openxc.VEHICLE_UNREVERSED"/>
-            </intent-filter>
-        </receiver>
 	</application>
     <uses-sdk android:targetSdkVersion="12" android:minSdkVersion="8"></uses-sdk>
     <uses-permission android:name="android.permission.CAMERA" />
