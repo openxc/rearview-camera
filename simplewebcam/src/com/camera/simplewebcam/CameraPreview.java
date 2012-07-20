@@ -195,7 +195,9 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		// /dev/videox (x=cameraId + cameraBase) is used
 		int ret = prepareCameraWithBase(cameraId, cameraBase);
 		
-		if(ret!=-1) cameraExists = true;
+		if(ret!=-1) {
+			cameraExists = true;
+		}
 		
         mainLoop = new Thread(this);
         mainLoop.start();		
@@ -220,3 +222,4 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		stopCamera();
 	}   
 }
+

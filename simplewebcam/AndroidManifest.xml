@@ -11,10 +11,32 @@
 			<intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+                </intent-filter>
         </activity>
+        <service android:name="com.openxc.VehicleManager"/>
+        <service android:name=".VehicleMonitoringService"/>
+        <receiver android:name="BootupReceiver">
+        	<intent-filter>
+              <action android:name="android.intent.action.BOOT_COMPLETED"/>
+              <service android:name="com.openxc.VehicleManager"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:name="LaunchReceiver">
+            <intent-filter>
+                <action android:name="com.ford.openxc.VEHICLE_REVERSED"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:name="CloseReceiver">
+            <intent-filter>
+                <action android:name="com.ford.openxc.VEHICLE_UNREVERSED"/>
+            </intent-filter>
+        </receiver>
 	</application>
     <uses-sdk android:targetSdkVersion="12" android:minSdkVersion="8"></uses-sdk>
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.usb.host"
+          android:required="true" />
 </manifest>
