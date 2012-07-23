@@ -23,13 +23,19 @@ public class Main extends Activity {
 
 		Log.w(TAG, "In onCreate");
 		
-		IntentFilter filter = new IntentFilter();
-		filter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
-		registerReceiver(receiver, filter);
+		//start monitoring service if not already started on boot
+    	Intent MonitoringServiceIntent = new Intent(Main.this, VehicleMonitoringService.class);
+    	startService(MonitoringServiceIntent);	
+     	Log.w(TAG, "Starting Service from BootupReceiver");
+		
+		
+		IntentFilter closeFilter = new IntentFilter();
+		closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
+		registerReceiver(closeReceiver, closeFilter);
 		
 	}
 	
-	BroadcastReceiver receiver = new BroadcastReceiver() {
+	BroadcastReceiver closeReceiver = new BroadcastReceiver() {
 		
 		@Override
 		public void onReceive(Context context, Intent intent) {

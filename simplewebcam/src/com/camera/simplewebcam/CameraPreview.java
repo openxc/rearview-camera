@@ -44,8 +44,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     private int winHeight=0;
     private Rect rect;
     private int dw, dh;
-    public float screenHeight;
-    public float screenWidth;
+    public float screenHeight=0;
+    public float screenWidth=0;
     private float rate;
     private float screenToBmpHeightRatio=0;
     private float screenToBmpWidthRatio=0;
@@ -57,7 +57,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     private float newOverlayWidth=0;
     private float ibookHorizontalTranslation=0;
     private float ibookVerticalTranslation=0;
-    private float transformedIbookWidth;
+    private float transformedIbookWidth=0;
     private float warningTextHorizontalTranslation=0;
     private float warningTextVerticalTranslation=0;
   
@@ -92,12 +92,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     		   
     		   // camera image to bmp
     		   pixeltobmp(bmp);
-    		   //pixeltobmp(bmpLines);
-    		   
-    		   
-    		   
-    		   //rect = new RectF()
-        	
+         	
     		   Canvas canvas = getHolder().lockCanvas();
     		   
     		   if (canvas != null) {
@@ -121,14 +116,13 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     			   cameraFeedMatrix.postTranslate((float)(0.5*screenWidth)+(float)(0.5*newBmpWidth),
             			(float)(0.5*screenHeight)-(float)(0.5*newBmpHeight));
             	
-    			   //compute ratio between screen and Overlay
+    			   //compute ratio between screen and overlay lines
     			   screenToOverlayWidthRatio = screenWidth/(float)bmpLines.getWidth();
     			   screenToOverlayHeightRatio = (float)0.35*screenHeight/(float)bmpLines.getHeight();
     			   
     			   //adjust bmpLines accordingly to screen size
     			   newOverlayWidth = screenToOverlayWidthRatio*bmpLines.getWidth();
     			   newOverlayHeight = screenToOverlayHeightRatio*bmpLines.getHeight();
-    			   
     			   
     			   Matrix overlayMatrix = new Matrix();
     			   overlayMatrix.preScale(-screenToOverlayWidthRatio, screenToOverlayHeightRatio);
@@ -143,16 +137,14 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     			   ibookMatrix.postTranslate(ibookHorizontalTranslation, ibookVerticalTranslation);
     			   transformedIbookWidth = (float)0.5*bmpIbook.getWidth();
     			   
-    			     			   
-    			   //place PleaseCheckSurroundings
+    			   //place warning text
     			   Matrix warningTextMatrix = new Matrix();
     			   warningTextHorizontalTranslation = ibookHorizontalTranslation + (float)1.5*transformedIbookWidth;
     			   warningTextVerticalTranslation = ibookVerticalTranslation;
     			   warningTextMatrix.preScale((float)0.5, (float)0.5);
     			   warningTextMatrix.postTranslate(warningTextHorizontalTranslation, warningTextVerticalTranslation);
     			   
-    			   
-    			   // draw bmps to canvas
+    			   // draw bitmaps to canvas
     			   canvas.drawBitmap(bmp, cameraFeedMatrix, null);
     			   canvas.drawBitmap(bmpLines, overlayMatrix, null);
     			   canvas.drawBitmap(bmpIbook, ibookMatrix, null);
@@ -168,7 +160,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     	   }
      	}
        	else {
-    	   Log.w(TAG, "No Camera Connected");
+    	   Log.w(TAG, "No Camera Detected");
        	}
     }
 
@@ -178,17 +170,20 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		if(bmp==null){
 			
 			bmp = Bitmap.createBitmap(IMG_WIDTH, IMG_HEIGHT, Bitmap.Config.ARGB_8888);
-			
+
 		}
 		if(bmpLines == null){
+			
 			bmpLines = BitmapFactory.decodeResource(getResources(), R.drawable.linesoverlay); 
 		}
 		
 		if(bmpIbook == null){
+			
 			bmpIbook = BitmapFactory.decodeResource(getResources(), R.drawable.ibook);
 		}
 		
 		if(bmpWarningText == null){
+			
 			bmpWarningText = BitmapFactory.decodeResource(getResources(), R.drawable.pleasechecksurroundings);
 		}
 		

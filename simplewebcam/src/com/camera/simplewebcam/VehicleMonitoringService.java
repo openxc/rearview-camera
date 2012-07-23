@@ -45,7 +45,6 @@ public class VehicleMonitoringService extends Service {
 	        					Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
 	        	                sendBroadcast(unreversedIntent);
 	        	                Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
-	        				
 	        				}
 	                	}
 	        		});
@@ -85,7 +84,5 @@ public class VehicleMonitoringService extends Service {
 		super.onCreate();
 		bindService(new Intent(this, VehicleManager.class),
 	                mConnection, Context.BIND_AUTO_CREATE);
-
-		Log.w(TAG, "InService");
 	}
 }
