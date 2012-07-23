@@ -12,6 +12,7 @@ import android.view.SurfaceView;
 
 class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runnable {
 
+    public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
 	private static final boolean DEBUG = true;
 	protected Context context;
 	private SurfaceHolder holder;
@@ -159,8 +160,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
      	}
        	else {
     	   Log.w(TAG, "No Camera Detected");
-
-           	}
+       	}
     }
 
 	@Override

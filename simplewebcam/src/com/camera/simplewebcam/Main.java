@@ -39,7 +39,7 @@ public class Main extends Activity {
 	       
 		super.onPause();
 		activityRunning = false;
-	}
+		}
 	
 	@Override
 	public void onResume() {
