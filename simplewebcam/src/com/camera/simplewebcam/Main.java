@@ -28,7 +28,7 @@ public class Main extends Activity {
     	startService(MonitoringServiceIntent);	
      	Log.w(TAG, "Starting Service from BootupReceiver");
 		
-		
+		//create intent filter to listen for unreversing of vehicle to close activity
 		IntentFilter closeFilter = new IntentFilter();
 		closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
 		registerReceiver(closeReceiver, closeFilter);

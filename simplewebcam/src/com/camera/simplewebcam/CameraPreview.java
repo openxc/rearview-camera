@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.Rect;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -42,11 +41,9 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	// The following variables are used to draw camera images.
     private int winWidth=0;
     private int winHeight=0;
-    private Rect rect;
-    private int dw, dh;
     public float screenHeight=0;
     public float screenWidth=0;
-    private float rate;
+    private float rate=0;
     private float screenToBmpHeightRatio=0;
     private float screenToBmpWidthRatio=0;
     private float screenToOverlayHeightRatio=0;
@@ -172,17 +169,17 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			bmp = Bitmap.createBitmap(IMG_WIDTH, IMG_HEIGHT, Bitmap.Config.ARGB_8888);
 
 		}
-		if(bmpLines == null){
+		if(bmpLines==null){
 			
 			bmpLines = BitmapFactory.decodeResource(getResources(), R.drawable.linesoverlay); 
 		}
 		
-		if(bmpIbook == null){
+		if(bmpIbook==null){
 			
 			bmpIbook = BitmapFactory.decodeResource(getResources(), R.drawable.ibook);
 		}
 		
-		if(bmpWarningText == null){
+		if(bmpWarningText==null){
 			
 			bmpWarningText = BitmapFactory.decodeResource(getResources(), R.drawable.pleasechecksurroundings);
 		}
