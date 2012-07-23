@@ -39,14 +39,12 @@ public class Main extends Activity {
 	       
 		super.onPause();
 		activityRunning = false;
-
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
 		activityRunning = true;
-		
 	}
 	
 	BroadcastReceiver closeReceiver = new BroadcastReceiver() {
@@ -56,6 +54,7 @@ public class Main extends Activity {
 			finish();
 		}
 	};
+	
 	public void finish() {
 		activityRunning = false;
 		super.finish();

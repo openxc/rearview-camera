@@ -22,7 +22,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	private Bitmap bmpWarningText=null;
 	
 	private static final String TAG = "CameraPreview";
-	public static final String ACTION_CLOSE_ACTIVITY = "com.camera.simplewebcam.CLOSE_ACTIVITY";
 
 	private boolean cameraExists=false;
 	private boolean shouldStop=false;
@@ -82,6 +81,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	
     @Override
     public void run() {
+    	
     	if (cameraExists) {
     	   while (true && cameraExists) {
     		       		   
@@ -159,7 +159,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
      	}
        	else {
     	   Log.w(TAG, "No Camera Detected");
-       	}
+
+           	}
     }
 
 	@Override
