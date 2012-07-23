@@ -11,13 +11,15 @@ import android.util.Log;
 public class Main extends Activity {
 	
 	private final static String TAG = "MainCamera";
-   
+	static boolean running;
 	CameraPreview cp;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		
+		running = true;
+		
 		cp = new CameraPreview(this);
 		setContentView(cp);
 
@@ -36,6 +38,21 @@ public class Main extends Activity {
 		
 	}
 	
+	@Override
+	public void onPause() {
+	       
+		super.onPause();
+		running = false;
+
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		running = true;
+		
+	}
+	
 	BroadcastReceiver closeReceiver = new BroadcastReceiver() {
 		
 		@Override
@@ -44,6 +61,7 @@ public class Main extends Activity {
 		}
 	};
 	public void finish() {
+		running = false;
 		super.finish();
 	}
 }

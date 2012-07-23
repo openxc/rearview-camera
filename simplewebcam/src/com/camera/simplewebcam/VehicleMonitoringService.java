@@ -35,13 +35,13 @@ public class VehicleMonitoringService extends Service {
 	                	
 	        				TransmissionGearString = status.getValue().enumValue().toString();
 	        				
-	        				if (TransmissionGearString =="REVERSE"){
+	        				if (TransmissionGearString =="REVERSE" && Main.running == false){
 	        					Intent launchIntent = new Intent(VehicleMonitoringService.this, Main.class);
 	        	         		launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	        	                VehicleMonitoringService.this.startActivity(launchIntent);
 	        	                Log.i(TAG, "Activity Launched");
 	        				}
-	        				else {
+	        				else if (TransmissionGearString != "REVERSE") {
 	        					Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
 	        	                sendBroadcast(unreversedIntent);
 	        	                Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");

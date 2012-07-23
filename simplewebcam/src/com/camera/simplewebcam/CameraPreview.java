@@ -82,8 +82,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	
     @Override
     public void run() {
-    	Log.w(TAG, "Looping again");
-       if (cameraExists) {
+    	if (cameraExists) {
     	   while (true && cameraExists) {
     		       		   
     		   // obtaining a camera image (pixel data are stored in an array in JNI).
