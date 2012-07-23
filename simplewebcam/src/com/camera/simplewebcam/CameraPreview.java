@@ -17,7 +17,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	private SurfaceHolder holder;
     Thread mainLoop = null;
 	private Bitmap bmp=null;
-	private Bitmap bmpLines=null;
+	private Bitmap bmpOverlayLines=null;
 	private Bitmap bmpIbook=null;
 	private Bitmap bmpWarningText=null;
 	
@@ -115,12 +115,12 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
             			(float)(0.5*screenHeight)-(float)(0.5*newBmpHeight));
             	
     			   //compute ratio between screen and overlay lines
-    			   screenToOverlayWidthRatio = screenWidth/(float)bmpLines.getWidth();
-    			   screenToOverlayHeightRatio = (float)0.35*screenHeight/(float)bmpLines.getHeight();
+    			   screenToOverlayWidthRatio = screenWidth/(float)bmpOverlayLines.getWidth();
+    			   screenToOverlayHeightRatio = (float)0.35*screenHeight/(float)bmpOverlayLines.getHeight();
     			   
-    			   //adjust bmpLines accordingly to screen size
-    			   newOverlayWidth = screenToOverlayWidthRatio*bmpLines.getWidth();
-    			   newOverlayHeight = screenToOverlayHeightRatio*bmpLines.getHeight();
+    			   //adjust bmpOverlayLines accordingly to screen size
+    			   newOverlayWidth = screenToOverlayWidthRatio*bmpOverlayLines.getWidth();
+    			   newOverlayHeight = screenToOverlayHeightRatio*bmpOverlayLines.getHeight();
     			   
     			   Matrix overlayMatrix = new Matrix();
     			   overlayMatrix.preScale(-screenToOverlayWidthRatio, screenToOverlayHeightRatio);
@@ -144,7 +144,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     			   
     			   // draw bitmaps to canvas
     			   canvas.drawBitmap(bmp, cameraFeedMatrix, null);
-    			   canvas.drawBitmap(bmpLines, overlayMatrix, null);
+    			   canvas.drawBitmap(bmpOverlayLines, overlayMatrix, null);
     			   canvas.drawBitmap(bmpIbook, ibookMatrix, null);
     			   canvas.drawBitmap(bmpWarningText, warningTextMatrix, null);
     			   
@@ -170,9 +170,9 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			bmp = Bitmap.createBitmap(IMG_WIDTH, IMG_HEIGHT, Bitmap.Config.ARGB_8888);
 
 		}
-		if(bmpLines==null){
+		if(bmpOverlayLines==null){
 			
-			bmpLines = BitmapFactory.decodeResource(getResources(), R.drawable.linesoverlay); 
+			bmpOverlayLines = BitmapFactory.decodeResource(getResources(), R.drawable.linesoverlay); 
 		}
 		
 		if(bmpIbook==null){

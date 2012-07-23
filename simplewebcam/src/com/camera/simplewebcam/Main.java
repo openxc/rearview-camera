@@ -11,19 +11,16 @@ import android.util.Log;
 public class Main extends Activity {
 	
 	private final static String TAG = "MainCamera";
-	static boolean running;
+	static boolean activityRunning=false;
 	CameraPreview cp;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		running = true;
-		
+		activityRunning = true;
 		cp = new CameraPreview(this);
 		setContentView(cp);
-
-		Log.w(TAG, "In onCreate");
 		
 		//start monitoring service if not already started on boot
     	Intent MonitoringServiceIntent = new Intent(Main.this, VehicleMonitoringService.class);
@@ -33,7 +30,6 @@ public class Main extends Activity {
 		//create intent filter to listen for unreversing of vehicle to close activity
 		IntentFilter closeFilter = new IntentFilter();
 		closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
-		//closeFilter.addAction("com.camera.simplewebcam.CLOSE_ACTIVITY");
 		registerReceiver(closeReceiver, closeFilter);
 		
 	}
@@ -42,14 +38,14 @@ public class Main extends Activity {
 	public void onPause() {
 	       
 		super.onPause();
-		running = false;
+		activityRunning = false;
 
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
-		running = true;
+		activityRunning = true;
 		
 	}
 	
@@ -61,7 +57,7 @@ public class Main extends Activity {
 		}
 	};
 	public void finish() {
-		running = false;
+		activityRunning = false;
 		super.finish();
 	}
 }
