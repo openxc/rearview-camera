@@ -39,7 +39,9 @@ public class Main extends Activity {
 	       
 		super.onPause();
 		activityRunning = false;
-		}
+		android.os.Process.killProcess(android.os.Process.myPid());
+		
+	}
 	
 	@Override
 	public void onResume() {

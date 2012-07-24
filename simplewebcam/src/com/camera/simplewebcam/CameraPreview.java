@@ -116,7 +116,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
             			(float)(0.5*screenHeight)-(float)(0.5*newBmpHeight));
             	
     			   //compute ratio between screen and overlay lines
-    			   screenToOverlayWidthRatio = screenWidth/(float)bmpOverlayLines.getWidth();
+    			   screenToOverlayWidthRatio = (float)0.75*screenWidth/(float)bmpOverlayLines.getWidth();
     			   screenToOverlayHeightRatio = (float)0.35*screenHeight/(float)bmpOverlayLines.getHeight();
     			   
     			   //adjust bmpOverlayLines accordingly to screen size
