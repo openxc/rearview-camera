@@ -11,6 +11,7 @@ import android.util.Log;
 
 import com.openxc.VehicleManager;
 import com.openxc.measurements.Measurement;
+import com.openxc.measurements.SteeringWheelAngle;
 import com.openxc.measurements.TransmissionGearPosition;
 import com.openxc.measurements.UnrecognizedMeasurementTypeException;
 import com.openxc.remote.VehicleServiceException;
@@ -21,34 +22,48 @@ public class VehicleMonitoringService extends Service {
     private final Handler mHandler = new Handler();
     private VehicleManager mVehicleManager;
     private String TransmissionGearString;
+    public static double SteeringWheelAngle;
     public static final String ACTION_VEHICLE_REVERSED = "com.ford.openxc.VEHICLE_REVERSED";
     public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
     
       TransmissionGearPosition.Listener mTransmissionGearPos =
-			new TransmissionGearPosition.Listener() {
-	        	public void receive(Measurement measurement) {
-	        		final TransmissionGearPosition status = (TransmissionGearPosition) measurement;
-	        		mHandler.post(new Runnable() {
-	        			public void run() {
+    		  new TransmissionGearPosition.Listener() {
+    	  public void receive(Measurement measurement) {
+    		  final TransmissionGearPosition status = (TransmissionGearPosition) measurement;
+    		  mHandler.post(new Runnable() {
+    			  public void run() {
 	        				
-	        				Log.w(TAG, status.getValue().enumValue().toString());
+    				  TransmissionGearString = status.getValue().enumValue().toString();
+    				  Log.w(TAG, TransmissionGearString);
 	                	
-	        				TransmissionGearString = status.getValue().enumValue().toString();
-	        				
-	        				if (TransmissionGearString =="REVERSE" && Main.activityRunning == false){
-	        					Intent launchIntent = new Intent(VehicleMonitoringService.this, Main.class);
-	        	         		launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	        	                VehicleMonitoringService.this.startActivity(launchIntent);
-	        	                Log.i(TAG, "Activity Launched");
-	        				}
-	        				else if (TransmissionGearString != "REVERSE") {
-	        					Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
-	        	                sendBroadcast(unreversedIntent);
-	        	                Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
-	        				}
-	                	}
-	        		});
-	        	}
+    				  //only start activity if vehicle put in reverse if activity is not already active
+    				  if (TransmissionGearString =="REVERSE" && Main.activityRunning == false){
+    					  Intent launchIntent = new Intent(VehicleMonitoringService.this, Main.class);
+    					  launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    					  VehicleMonitoringService.this.startActivity(launchIntent);
+    					  Log.i(TAG, "Activity Launched");
+    				  }
+    				  /*else if (TransmissionGearString != "REVERSE") {
+    					  Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
+    					  sendBroadcast(unreversedIntent);
+    					  Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
+    				  }*/
+    			  }
+    		  });
+    	  }
+      };
+      
+      SteeringWheelAngle.Listener mSteeringWheelListener =
+    		  new SteeringWheelAngle.Listener() {
+    	  public void receive(Measurement measurement) {
+    		  final SteeringWheelAngle angle = (SteeringWheelAngle) measurement;
+    		  mHandler.post(new Runnable() {
+    			  public void run() {
+    				  SteeringWheelAngle = angle.getValue().doubleValue();
+    				  Log.w(TAG , "Steering Wheel Angle = "+SteeringWheelAngle);
+                  }
+              });
+          }
       };
 		
       ServiceConnection mConnection = new ServiceConnection() {
@@ -60,6 +75,8 @@ public class VehicleMonitoringService extends Service {
 	            		try {
 	            			mVehicleManager.addListener(TransmissionGearPosition.class,
 	            					mTransmissionGearPos);
+	            			mVehicleManager.addListener(SteeringWheelAngle.class,
+	                                mSteeringWheelListener);
 	                
 	            		} catch(VehicleServiceException e) {
 	            			Log.w(TAG, "Couldn't add listeners for measurements", e);

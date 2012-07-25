@@ -1,11 +1,15 @@
 package com.camera.simplewebcam;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
 
 public class Main extends Activity {
@@ -23,8 +27,8 @@ public class Main extends Activity {
 		setContentView(cp);
 		
 		//start monitoring service if not already started on boot
-    	Intent MonitoringServiceIntent = new Intent(Main.this, VehicleMonitoringService.class);
-    	startService(MonitoringServiceIntent);	
+    	Intent VehicleMonitoringServiceIntent = new Intent(Main.this, VehicleMonitoringService.class);
+    	startService(VehicleMonitoringServiceIntent);	
      	Log.w(TAG, "Starting Service from BootupReceiver");
 		
 		//create intent filter to listen for unreversing of vehicle to close activity
@@ -32,6 +36,9 @@ public class Main extends Activity {
 		closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
 		registerReceiver(closeReceiver, closeFilter);
 		
+		IntentFilter usbfilter = new IntentFilter();
+        usbfilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        registerReceiver(mUsbReceiver, usbfilter);
 	}
 	
 	@Override
@@ -57,9 +64,35 @@ public class Main extends Activity {
 		}
 	};
 	
+	BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+        
+		@Override
+        public void onReceive(Context context, Intent intent) {
+            Log.w("USB ERROR", "Usb device detached");
+            usbError();   
+        }
+    };
+	
 	public void finish() {
 		activityRunning = false;
 		super.finish();
+	}
+	 
+	public void usbError(){
+	        Vibrator vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+	        vibrator.vibrate(2000);
+
+	        new AlertDialog.Builder(this)
+	        .setTitle("USB Device Unplugged!")
+	        .setMessage("FordBackupCam is closing. Please re-insert device(s) and reopen from main menu.")
+	        .setCancelable(false)
+	        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+	        	public void onClick(DialogInterface dialog, int id) {
+	        		activityRunning = false;
+	        		android.os.Process.killProcess(android.os.Process.myPid());
+	            }
+	        }).show();
+
 	}
 }
 	 

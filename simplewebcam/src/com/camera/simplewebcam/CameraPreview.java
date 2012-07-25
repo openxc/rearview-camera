@@ -4,7 +4,11 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PointF;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -21,6 +25,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	private Bitmap bmpOverlayLines=null;
 	private Bitmap bmpIbook=null;
 	private Bitmap bmpWarningText=null;
+	private Bitmap bendingLinesBitmap=null;
 	
 	private static final String TAG = "CameraPreview";
 
@@ -33,7 +38,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	// In such a case, try cameraId=0 and cameraBase=4
 	private int cameraId=0;
 	private int cameraBase=0;
-	
+
 	// This definition also exists in ImageProc.h.
 	// Webcam must support the resolution 640x480 with YUYV format. 
 	static final int IMG_WIDTH=640;
@@ -51,13 +56,24 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     private float screenToOverlayWidthRatio=0;
     private float newBmpHeight=0;
     private float newBmpWidth=0;
-    private float newOverlayHeight=0;
-    private float newOverlayWidth=0;
+    private float adjustedOverlayHeight=0;
+    private float adjustedOverlayWidth=0;
     private float ibookHorizontalTranslation=0;
     private float ibookVerticalTranslation=0;
     private float transformedIbookWidth=0;
     private float warningTextHorizontalTranslation=0;
     private float warningTextVerticalTranslation=0;
+    private float overlayHorizontalTranslation=0;
+    private float overlayVerticalTranslation=0;
+    private float overlayBottomCoordinate=0;
+    private float overlayTopCoordinate=0;
+    private float overlayLeftCoordinate=0;
+    private float overlayRightCoordinate=0;
+    private float StartXCoordinate;
+    private float StartYCoordinate;
+    private float EndXCoordinate;
+    private float EndYCoordinate;
+    private double steeringWheelValue;
   
     // JNI functions
     public native int prepareCamera(int videoid);
@@ -82,10 +98,12 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	
     @Override
     public void run() {
-    	
     	if (cameraExists) {
     	   while (true && cameraExists) {
     		       		   
+    		   //get steering wheel angle
+    		   steeringWheelValue = (float)VehicleMonitoringService.SteeringWheelAngle;
+    		   
     		   // obtaining a camera image (pixel data are stored in an array in JNI).
     		   processCamera();
     		   
@@ -117,16 +135,19 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
             	
     			   //compute ratio between screen and overlay lines
     			   screenToOverlayWidthRatio = (float)0.75*screenWidth/(float)bmpOverlayLines.getWidth();
-    			   screenToOverlayHeightRatio = (float)0.35*screenHeight/(float)bmpOverlayLines.getHeight();
+    			   screenToOverlayHeightRatio = (float)0.5*screenHeight/(float)bmpOverlayLines.getHeight();
     			   
     			   //adjust bmpOverlayLines accordingly to screen size
-    			   newOverlayWidth = screenToOverlayWidthRatio*bmpOverlayLines.getWidth();
-    			   newOverlayHeight = screenToOverlayHeightRatio*bmpOverlayLines.getHeight();
+    			   adjustedOverlayWidth = screenToOverlayWidthRatio*bmpOverlayLines.getWidth();
+    			   adjustedOverlayHeight = screenToOverlayHeightRatio*bmpOverlayLines.getHeight();
+    			   
+    			   overlayVerticalTranslation = (float)(0.5*screenHeight)-(float)(0.35*adjustedOverlayHeight);
+    			   overlayHorizontalTranslation = (float)(0.5*screenWidth)+(float)(0.5*adjustedOverlayWidth);
     			   
     			   Matrix overlayMatrix = new Matrix();
     			   overlayMatrix.preScale(-screenToOverlayWidthRatio, screenToOverlayHeightRatio);
-    			   overlayMatrix.postTranslate((float)(0.5*screenWidth)+(float)(0.5*newOverlayWidth), 
-    					   (float)(0.5*screenHeight)-(float)(0.25*newOverlayHeight));
+    			   overlayMatrix.postTranslate(overlayHorizontalTranslation, 
+    					   overlayVerticalTranslation);
     			   
     			   //place ibook
     			   Matrix ibookMatrix = new Matrix();
@@ -143,11 +164,121 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     			   warningTextMatrix.preScale((float)0.5, (float)0.5);
     			   warningTextMatrix.postTranslate(warningTextHorizontalTranslation, warningTextVerticalTranslation);
     			   
+    			   //make overlay fade with steering wheel angle
+    			   Paint overlayPaint = new Paint();
+    			   //overlayPaint.setAlpha(255-(int)steeringWheelValue);
+    			   
     			   // draw bitmaps to canvas
     			   canvas.drawBitmap(bmp, cameraFeedMatrix, null);
-    			   canvas.drawBitmap(bmpOverlayLines, overlayMatrix, null);
+    			   canvas.drawBitmap(bmpOverlayLines, overlayMatrix, overlayPaint);
     			   canvas.drawBitmap(bmpIbook, ibookMatrix, null);
     			   canvas.drawBitmap(bmpWarningText, warningTextMatrix, null);
+    			   
+    			   
+    			   //get coordinates of overlay
+    			   overlayBottomCoordinate = adjustedOverlayHeight + overlayVerticalTranslation;
+    			   overlayTopCoordinate = overlayVerticalTranslation;
+    			   overlayLeftCoordinate = (float)0.5*(screenWidth-adjustedOverlayWidth);
+    			   overlayRightCoordinate = overlayLeftCoordinate + adjustedOverlayWidth;
+
+       			   //Log.i(TAG, "SteeringWheel Angle = " +steeringWheelValue);
+    			   
+    			   //Set Paint color
+       			   Paint linesPaint = new Paint();
+       			   linesPaint.setStyle(Paint.Style.STROKE);
+       			   linesPaint.setColor(Color.WHITE);
+       			   linesPaint.setStrokeWidth(3);
+       			   //linesPaint.setAlpha((int)steeringWheelValue*3);
+       			   
+       			   int z;
+       			   int xpixel = (int)overlayLeftCoordinate; 
+       			   int numberGreenTransitions=0;
+       			   int pixel;
+       			   int leftPositionLeftGuideTop=0;
+       			   int rightPositionLeftGuideTop=0;
+       			   int midpointLeftGuideTop=0;
+       			   int[] greenValue;
+       			   greenValue = new int[(int)adjustedOverlayWidth];
+       			   
+       			   for (z=1; z < adjustedOverlayWidth/2; z++){
+       			   
+       			   pixel = bmpOverlayLines.getPixel(xpixel, (int)overlayTopCoordinate+5);
+       			
+       			   greenValue[z] = Color.green(pixel);
+       			   
+       			   Log.w(TAG, "GreenValue = " +greenValue[z] + " @ pixel " + xpixel);
+       			   		
+       			   		if (greenValue[z] > greenValue[z-1]) {
+       			   			
+       			   			leftPositionLeftGuideTop = xpixel-1;
+       			   		}
+       			   		
+       			   		
+       			   		else if (xpixel == 481) {
+       			   			rightPositionLeftGuideTop = xpixel;
+       			   		}
+       			   
+       			   xpixel++;
+       			   
+       			   }
+       			   
+       			   midpointLeftGuideTop = (leftPositionLeftGuideTop + rightPositionLeftGuideTop)/2;
+       			   Log.w(TAG, "Midpoint = " +midpointLeftGuideTop);
+
+       			   //Log.w(TAG, "Number of Green Transitions = " + numberGreenTransitions);
+       			   
+       			   StartYCoordinate = overlayBottomCoordinate ;
+       			   StartXCoordinate = overlayLeftCoordinate + 20/* + (float)steeringWheelValue*/;
+       			   
+       			   canvas.drawLine(StartXCoordinate, StartYCoordinate, midpointLeftGuideTop, 
+       					   overlayTopCoordinate, linesPaint);
+       			   
+       			   Path path = new Path();
+       			   //PointF point1 = new PointF(StartXCoordinate, StartYCoordinate);
+       			   //PointF point2 = new PointF(midpointLeftGuideTop, overlayTopCoordinate);
+       			   //PointF point3 = new PointF(midpointLeftGuideTop+50, overlayTopCoordinate+100);
+       			   path.cubicTo(StartXCoordinate, StartYCoordinate, midpointLeftGuideTop, overlayTopCoordinate,
+       					midpointLeftGuideTop+50, overlayTopCoordinate+100);
+       			   
+       			   canvas.drawPath(path, linesPaint);
+       			   
+       			   /*while (EndYCoordinate > overlayTopCoordinate) {
+       				   canvas.drawLine(StartXCoordinate, StartYCoordinate, 
+   						   EndXCoordinate, EndYCoordinate, linesPaint);
+  			
+       				   StartXCoordinate = EndXCoordinate;
+       				   StartYCoordinate = EndYCoordinate;
+       				   //EndXCoordinate = EndXCoordinate + (float)0.000005*x*xchange;
+       				   //EndYCoordinate = EndYCoordinate - ychange;
+       				   x+=18;
+  				   		   
+       			 }*/
+       			   
+       			   
+       			   
+       			   
+       			   
+    			   /*int x=10;
+    			   float ychange = (float)1;
+    			   float xchange = 40//(float)steeringWheelValue;
+    			   
+    			   //start line
+    			   StartYCoordinate = overlayBottomCoordinate ;
+    			   StartXCoordinate = overlayLeftCoordinate + 30 + (float)steeringWheelValue;
+    			   
+    			   //first coordinates
+    			   //EndXCoordinate = StartXCoordinate// + (float)0.0001*x*xchange + 1;
+     			   //EndYCoordinate = StartYCoordinate// - ychange;
+    			   
+     			   //draw arc with many lines
+    			   
+     			   //for(x=0; x<220; x++){
+     			  */
+    			   
+    			
+    			   			   
+    			   
+    			   
     			   
     			   getHolder().unlockCanvasAndPost(canvas); 
     		   }
@@ -173,7 +304,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		}
 		if(bmpOverlayLines==null){
 			
-			bmpOverlayLines = BitmapFactory.decodeResource(getResources(), R.drawable.linesoverlay); 
+			bmpOverlayLines = BitmapFactory.decodeResource(getResources(), R.drawable.linesoverlay3); 
 		}
 		
 		if(bmpIbook==null){
@@ -184,6 +315,11 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		if(bmpWarningText==null){
 			
 			bmpWarningText = BitmapFactory.decodeResource(getResources(), R.drawable.pleasechecksurroundings);
+		}
+		
+		if(bendingLinesBitmap==null){
+			
+			bendingLinesBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bendinglines);
 		}
 		
 		// /dev/videox (x=cameraId + cameraBase) is used
