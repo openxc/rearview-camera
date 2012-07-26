@@ -76,6 +76,8 @@ public class Main extends Activity {
 	public void finish() {
 		activityRunning = false;
 		super.finish();
+		//do we want to use "android.os.Process.killProcess(android.os.Process.myPid());" instead of super.finish()?
+
 	}
 	 
 	public void usbError(){
