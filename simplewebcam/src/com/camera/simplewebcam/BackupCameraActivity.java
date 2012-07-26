@@ -12,10 +12,10 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
 
-public class Main extends Activity {
+public class BackupCameraActivity extends Activity {
 	
-	private final static String TAG = "MainCamera";
-	static boolean activityRunning=false;
+	private final static String TAG = "BackupCameraActivity";
+	private static boolean activityRunning=false;
 	CameraPreview cp;
 
 	@Override
@@ -27,7 +27,7 @@ public class Main extends Activity {
 		setContentView(cp);
 		
 		//start monitoring service if not already started on boot
-    	Intent VehicleMonitoringServiceIntent = new Intent(Main.this, VehicleMonitoringService.class);
+    	Intent VehicleMonitoringServiceIntent = new Intent(BackupCameraActivity.this, VehicleMonitoringService.class);
     	startService(VehicleMonitoringServiceIntent);	
      	Log.w(TAG, "Starting Service from BootupReceiver");
 		
@@ -38,7 +38,9 @@ public class Main extends Activity {
 		
 		IntentFilter usbfilter = new IntentFilter();
         usbfilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        usbfilter.addAction("com.ford.openxc.NO_CAMERA_DETECTED");
         registerReceiver(mUsbReceiver, usbfilter);
+        
 	}
 	
 	@Override
@@ -54,6 +56,7 @@ public class Main extends Activity {
 	public void onResume() {
 		super.onResume();
 		activityRunning = true;
+		
 	}
 	
 	BroadcastReceiver closeReceiver = new BroadcastReceiver() {
@@ -86,7 +89,7 @@ public class Main extends Activity {
 
 	        new AlertDialog.Builder(this)
 	        .setTitle("USB Device Unplugged!")
-	        .setMessage("FordBackupCam is closing. Please re-insert device(s) and reopen from main menu.")
+	        .setMessage("FordBackupCam is closing. Please insert device(s) and reopen from main menu.")
 	        .setCancelable(false)
 	        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
 	        	public void onClick(DialogInterface dialog, int id) {
@@ -96,6 +99,15 @@ public class Main extends Activity {
 	        }).show();
 
 	}
+	
+	public static boolean isRunning() {
+		return activityRunning;
+		
+	}
+	
+//TODO
+	//write ondestroy to unbind from services/receivers  
+	
 }
 	 
 	

@@ -1,14 +1,13 @@
 package com.camera.simplewebcam;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.PointF;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -17,11 +16,13 @@ import android.view.SurfaceView;
 class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runnable {
 
     public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
+    public static final String NO_CAMERA_DETECTED = "com.ford.openxc.NO_CAMERA_DETECTED";
+
 	private static final boolean DEBUG = true;
 	protected Context context;
 	private SurfaceHolder holder;
     Thread mainLoop = null;
-	private Bitmap bmp=null;
+	private Bitmap bmpVideoFeed=null;
 	private Bitmap bmpOverlayLines=null;
 	private Bitmap bmpIbook=null;
 	private Bitmap bmpWarningText=null;
@@ -50,17 +51,20 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     public float screenHeight=0;
     public float screenWidth=0;
     private float rate=0;
-    private float screenToBmpHeightRatio=0;
-    private float screenToBmpWidthRatio=0;
+    private float screenToFeedHeightRatio=0;
+    private float screenToFeedWidthRatio=0;
     private float screenToOverlayHeightRatio=0;
     private float screenToOverlayWidthRatio=0;
-    private float newBmpHeight=0;
-    private float newBmpWidth=0;
+    private float screenToIbookHeightRatio=0;
+    private float screenToIbookWidthRatio=0;
+    private float newBmpVideoFeedHeight=0;
+    private float newBmpVideoFeedWidth=0;
     private float adjustedOverlayHeight=0;
     private float adjustedOverlayWidth=0;
     private float ibookHorizontalTranslation=0;
     private float ibookVerticalTranslation=0;
-    private float transformedIbookWidth=0;
+    private float adjustedIbookWidth=0;
+    private float adjustedIbookHeight=0;
     private float warningTextHorizontalTranslation=0;
     private float warningTextVerticalTranslation=0;
     private float overlayHorizontalTranslation=0;
@@ -74,6 +78,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     private float EndXCoordinate;
     private float EndYCoordinate;
     private double steeringWheelValue;
+    private float warningTextXCoordinate;
+    private float warningTextYCoordinate;
   
     // JNI functions
     public native int prepareCamera(int videoid);
@@ -108,71 +114,88 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     		   processCamera();
     		   
     		   // camera image to bmp
-    		   pixeltobmp(bmp);
+    		   pixeltobmp(bmpVideoFeed);
          	
     		   Canvas canvas = getHolder().lockCanvas();
     		   
     		   if (canvas != null) {
     			             		
-    			  //obtain screen dimensions
-    			   DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-    			   screenWidth = metrics.widthPixels;
-    			   screenHeight= metrics.heightPixels;
     			  
-    			   //compute ratio between screen and bmp
-    			   screenToBmpWidthRatio = screenWidth/(float)bmp.getWidth();
-    			   screenToBmpHeightRatio = screenHeight/(float)bmp.getHeight();
+    			   //obtain screen dimensions
+    			   getScreenHeight();
+    			   getScreenWidth();
+    //video feed
+    			   //compute ratio between screen and bmpVideoFeed
+    			   computeScreenToFeedWidthRatio();
+    			   computeScreenToFeedHeightRatio();
+
+    			   //adjust bmpVideoFeed to match screen size
+    			   computeNewBmpVideoFeedWidth();
+    			   computeNewBmpVideoFeedHeight();
     			   
-    			   //adjust bmp to match screen size
-    			   newBmpWidth = screenToBmpWidthRatio*bmp.getWidth();
-    			   newBmpHeight = screenToBmpHeightRatio*bmp.getHeight();
-    			  
-    			   //adjust size and flip bmp horizontally with matrix
-    			   Matrix cameraFeedMatrix = new Matrix();
-    			   cameraFeedMatrix.preScale(-screenToBmpWidthRatio, screenToBmpHeightRatio);
-    			   cameraFeedMatrix.postTranslate((float)(0.5*screenWidth)+(float)(0.5*newBmpWidth),
-            			(float)(0.5*screenHeight)-(float)(0.5*newBmpHeight));
+    			   //adjust size and flip bmpVideoFeed horizontally with matrix
+    			   Matrix videoFeedMatrix = createVideoFeedMatrix();    			   
             	
+     //overlay
     			   //compute ratio between screen and overlay lines
-    			   screenToOverlayWidthRatio = (float)0.75*screenWidth/(float)bmpOverlayLines.getWidth();
-    			   screenToOverlayHeightRatio = (float)0.5*screenHeight/(float)bmpOverlayLines.getHeight();
+    			   computeScreenToOverlayWidthRatio();
+    			   computeScreenToOverlayHeightRatio();
     			   
-    			   //adjust bmpOverlayLines accordingly to screen size
-    			   adjustedOverlayWidth = screenToOverlayWidthRatio*bmpOverlayLines.getWidth();
-    			   adjustedOverlayHeight = screenToOverlayHeightRatio*bmpOverlayLines.getHeight();
+    			   //compute adjusted dimensions of bmpOverlayLines
+    			   computeAdjustedOverlayWidth();
+    			   computeAdjustedOverlayHeight();
+    			  
+    			   //compute translation of bmpOverlaylines
+    			   computeOverlayVerticalTranslation();
+    			   computeOverlayHorizontalTranslation();
     			   
-    			   overlayVerticalTranslation = (float)(0.5*screenHeight)-(float)(0.35*adjustedOverlayHeight);
-    			   overlayHorizontalTranslation = (float)(0.5*screenWidth)-(float)(0.5*adjustedOverlayWidth);
+    			   //adjust bmpOverlaylines according to above calculations
+    			   Matrix overlayMatrix = createOverlayMatrix();
+    			       			       			   
+     //ibook
+    			   //compute ratio between screen and Ibook icon
+    			   computeScreenToIbookHeightRatio();
+    			   computeScreenToIbookWidthRatio();
     			   
-    			   Matrix overlayMatrix = new Matrix();
-    			   overlayMatrix.preScale(screenToOverlayWidthRatio, screenToOverlayHeightRatio);
-    			   overlayMatrix.postTranslate(overlayHorizontalTranslation, 
-    					   overlayVerticalTranslation);
+    			   //compute adjusted dimensions of Ibook icon
+    			   computeAdjustedIbookWidth();
+    			   computedAdjustedIbookHeight();
     			   
-    			   //place ibook
-    			   Matrix ibookMatrix = new Matrix();
-    			   ibookHorizontalTranslation = (float)0.05*screenWidth;
-    			   ibookVerticalTranslation = 20;
-    			   ibookMatrix.preScale((float)0.5, (float)0.5);
-    			   ibookMatrix.postTranslate(ibookHorizontalTranslation, ibookVerticalTranslation);
-    			   transformedIbookWidth = (float)0.5*bmpIbook.getWidth();
+    			   //compute translation of Ibook icon
+    			   computeIbookHorizontalTranslation();
+    			   computeIbookVerticalTranslation();
     			   
-    			   //place warning text
-    			   Matrix warningTextMatrix = new Matrix();
-    			   warningTextHorizontalTranslation = ibookHorizontalTranslation + (float)1.5*transformedIbookWidth;
-    			   warningTextVerticalTranslation = ibookVerticalTranslation;
-    			   warningTextMatrix.preScale((float)0.5, (float)0.5);
-    			   warningTextMatrix.postTranslate(warningTextHorizontalTranslation, warningTextVerticalTranslation);
+    			   //adjust Ibook icon according to above calculations
+    			   Matrix ibookMatrix = createIbookMatrix();
+    		
+    //warning text			   
+    			   //place warning text (adjusted according to ibook icon placement)
+    			   
+    			   getWarningTextXCoordinate();
+    			   getWarningTextYCoordinate();
+    			   
+    			   Paint warningTextPaint = createWarningTextPaint();
+    			   
+    			   //create Outline
+    			   
+    			   Paint warningTextOutlinePaint = createWarningTextOutlinePaint(warningTextPaint);
+    			   
     			   
     			   //make overlay fade with steering wheel angle
     			   Paint overlayPaint = new Paint();
     			   //overlayPaint.setAlpha(255-(int)steeringWheelValue);
     			   
     			   // draw bitmaps to canvas
-    			   canvas.drawBitmap(bmp, cameraFeedMatrix, null);
+    			   canvas.drawBitmap(bmpVideoFeed, videoFeedMatrix, null);
     			   canvas.drawBitmap(bmpOverlayLines, overlayMatrix, overlayPaint);
     			   canvas.drawBitmap(bmpIbook, ibookMatrix, null);
-    			   canvas.drawBitmap(bmpWarningText, warningTextMatrix, null);
+    			   
+    			   //must draw outline paint first, otherwise yields thick black text with small white inside
+    			   canvas.drawText("Please Check Surroundings for Safety", warningTextXCoordinate, 
+    					   warningTextYCoordinate, warningTextOutlinePaint);
+    			   canvas.drawText("Please Check Surroundings for Safety", warningTextXCoordinate, 
+    					   warningTextYCoordinate, warningTextPaint);
+    			   
     			   
     			   Matrix bendingLinesMatrix = new Matrix();
     			   bendingLinesMatrix.preScale(screenToOverlayWidthRatio, screenToOverlayHeightRatio);
@@ -193,11 +216,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     			   overlayLeftCoordinate = (float)0.5*(screenWidth-adjustedOverlayWidth);
     			   overlayRightCoordinate = overlayLeftCoordinate + adjustedOverlayWidth;
 
-
-       			   
-    			   			   
-    			   
-    			   
     			   
     			   getHolder().unlockCanvasAndPost(canvas); 
     		   }
@@ -209,16 +227,143 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     	   }
      	}
        	else {
-    	   Log.w(TAG, "No Camera Detected");
+    	   Intent noCameraDetectedIntent = new Intent(NO_CAMERA_DETECTED);
+    	   context.sendBroadcast(noCameraDetectedIntent);
+    	   Log.i(TAG, "No Camera Detected Intent Sent");
        	}
     }
 
+	
+	
+	private Paint createWarningTextOutlinePaint(Paint warningTextPaint) {
+		Paint warningTextOutlinePaint = new Paint();
+		warningTextOutlinePaint.setStrokeWidth(4);
+		warningTextOutlinePaint.setStyle(Paint.Style.STROKE);
+		warningTextOutlinePaint.setTextSize(warningTextPaint.getTextSize());
+			return warningTextOutlinePaint;
+	}
+	private Paint createWarningTextPaint() {
+		Paint warningTextPaint = new Paint();
+		warningTextPaint.setColor(Color.WHITE);
+		warningTextPaint.setTextSize(50);
+			return warningTextPaint;
+	}
+	private float getWarningTextYCoordinate() {
+		warningTextYCoordinate = ibookVerticalTranslation + adjustedIbookHeight;
+			return warningTextYCoordinate;
+	}
+	private float getWarningTextXCoordinate() {
+		warningTextXCoordinate = ibookHorizontalTranslation + (float)1.5*adjustedIbookWidth;
+			return warningTextXCoordinate;
+	}
+	private Matrix createWarningTextMatrix() {
+		Matrix warningTextMatrix = new Matrix();
+		warningTextHorizontalTranslation = ibookHorizontalTranslation + (float)1.5*adjustedIbookWidth;
+		warningTextVerticalTranslation = ibookVerticalTranslation;
+		warningTextMatrix.preScale((float)0.5, (float)0.5);
+		warningTextMatrix.postTranslate(warningTextHorizontalTranslation, warningTextVerticalTranslation);
+			return warningTextMatrix;
+	}
+	private Matrix createIbookMatrix() {
+		Matrix ibookMatrix = new Matrix();
+		ibookMatrix.preScale(screenToIbookWidthRatio, screenToIbookHeightRatio);
+		ibookMatrix.postTranslate(ibookHorizontalTranslation, ibookVerticalTranslation);
+			return ibookMatrix;
+	}
+	private float computeIbookVerticalTranslation() {
+		ibookVerticalTranslation = (float)(0.02*screenHeight);
+			return ibookVerticalTranslation;
+	}
+	private float computeIbookHorizontalTranslation() {
+		ibookHorizontalTranslation = (float)0.02*screenWidth;
+			return ibookHorizontalTranslation;
+	}
+	private float computedAdjustedIbookHeight() {
+		adjustedIbookHeight = screenToIbookHeightRatio*bmpIbook.getHeight();
+		return adjustedIbookHeight;
+	}
+	private float computeAdjustedIbookWidth() {
+		adjustedIbookWidth = screenToIbookWidthRatio*bmpIbook.getWidth();
+			return adjustedIbookWidth;
+	}
+	private float computeScreenToIbookWidthRatio() {
+		screenToIbookWidthRatio = screenWidth/bmpIbook.getWidth()/20;
+			return screenToIbookWidthRatio;
+	}
+	private float computeScreenToIbookHeightRatio() {
+		screenToIbookHeightRatio = screenHeight/bmpIbook.getHeight()/20;
+			return screenToIbookHeightRatio;
+	}
+	private Matrix createOverlayMatrix() {
+		Matrix overlayMatrix = new Matrix();
+		overlayMatrix.preScale(screenToOverlayWidthRatio, screenToOverlayHeightRatio);
+		overlayMatrix.postTranslate(overlayHorizontalTranslation, 
+		overlayVerticalTranslation);
+		return overlayMatrix;
+	}
+	private float computeOverlayHorizontalTranslation() {
+		overlayHorizontalTranslation = (float)(0.5*screenWidth)-(float)(0.5*adjustedOverlayWidth);
+			return overlayHorizontalTranslation;
+	}
+	private float computeOverlayVerticalTranslation() {
+		overlayVerticalTranslation = (float)(0.5*screenHeight)-(float)(0.35*adjustedOverlayHeight);
+		return overlayVerticalTranslation;
+	}
+	private float computeAdjustedOverlayHeight() {
+		adjustedOverlayHeight = screenToOverlayHeightRatio*bmpOverlayLines.getHeight();
+			return adjustedOverlayHeight;
+	}
+	private float computeAdjustedOverlayWidth() {
+		adjustedOverlayWidth = screenToOverlayWidthRatio*bmpOverlayLines.getWidth();
+			return adjustedOverlayWidth;
+	}
+	private float computeScreenToOverlayHeightRatio() {
+		screenToOverlayHeightRatio = (float)0.5*screenHeight/(float)bmpOverlayLines.getHeight();
+			return screenToOverlayHeightRatio;
+	}
+	private float computeScreenToOverlayWidthRatio() {
+		screenToOverlayWidthRatio = (float)0.75*screenWidth/(float)bmpOverlayLines.getWidth();
+			return screenToOverlayWidthRatio;
+	}
+	private Matrix createVideoFeedMatrix() {
+		Matrix videoFeedMatrix = new Matrix();
+		videoFeedMatrix.preScale(-screenToFeedWidthRatio, screenToFeedHeightRatio);
+		videoFeedMatrix.postTranslate((float)(0.5*screenWidth)+(float)(0.5*newBmpVideoFeedWidth),
+ 			(float)(0.5*screenHeight)-(float)(0.5*newBmpVideoFeedHeight));
+			return videoFeedMatrix;
+	}
+	private float computeNewBmpVideoFeedHeight() {
+		newBmpVideoFeedHeight = screenToFeedHeightRatio*bmpVideoFeed.getHeight();
+			return newBmpVideoFeedHeight;
+	}
+	private float computeNewBmpVideoFeedWidth() {
+		newBmpVideoFeedWidth = screenToFeedWidthRatio*bmpVideoFeed.getWidth();
+			return newBmpVideoFeedWidth;
+	}
+	private float computeScreenToFeedHeightRatio() {
+		screenToFeedHeightRatio = screenHeight/(float)bmpVideoFeed.getHeight();
+			return screenToFeedHeightRatio;
+	}
+	private float computeScreenToFeedWidthRatio() {
+		screenToFeedWidthRatio = screenWidth/(float)bmpVideoFeed.getWidth();
+			return screenToFeedWidthRatio;
+	}
+	private float getScreenHeight() {
+		DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+		screenHeight= metrics.heightPixels;
+			return screenHeight;
+	}
+	private float getScreenWidth() {
+		DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+		screenWidth = metrics.widthPixels;
+			return screenWidth;
+	}
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		if(DEBUG) Log.d("WebCam", "surfaceCreated");
-		if(bmp==null){
+		if(bmpVideoFeed==null){
 			
-			bmp = Bitmap.createBitmap(IMG_WIDTH, IMG_HEIGHT, Bitmap.Config.ARGB_8888);
+			bmpVideoFeed = Bitmap.createBitmap(IMG_WIDTH, IMG_HEIGHT, Bitmap.Config.ARGB_8888);
 
 		}
 		if(bmpOverlayLines==null){
@@ -229,11 +374,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		if(bmpIbook==null){
 			
 			bmpIbook = BitmapFactory.decodeResource(getResources(), R.drawable.ibook);
-		}
-		
-		if(bmpWarningText==null){
-			
-			bmpWarningText = BitmapFactory.decodeResource(getResources(), R.drawable.pleasechecksurroundings);
 		}
 		
 		if(bmpBendingLines==null){
