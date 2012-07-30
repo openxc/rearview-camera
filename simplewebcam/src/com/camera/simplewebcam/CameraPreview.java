@@ -134,24 +134,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	}
 
 	private void drawBendingLinesBitmap(Canvas canvas) {
-		float screenToOverlayHeightRatio = computeScreenToOverlayHeightRatio();
-		float screenToOverlayWidthRatio = computeScreenToOverlayWidthRatio();
-		float overlayVerticalTranslation = computeOverlayVerticalTranslation();
-		float overlayHorizontalTranslation = computeOverlayHorizontalTranslation();
-		
-		//place bending lines directly overtop overlay by using same translations/ratios
-		float screenToBendingLinesHeightRatio = screenToOverlayHeightRatio;
-		float screenToBendingLinesWidthRatio = screenToOverlayWidthRatio;
-		float bendingLinesVerticalTranslation = overlayVerticalTranslation;
-		float bendingLinesHorizontalTranslation = overlayHorizontalTranslation;
-		
 		Paint bendingLinesPaint = createBendingLinesPaint();
-		
-		Matrix bendingLinesMatrix = new Matrix();
-		bendingLinesMatrix.preScale(screenToBendingLinesWidthRatio, screenToBendingLinesHeightRatio);
-		bendingLinesMatrix.postTranslate(bendingLinesHorizontalTranslation + (float)steeringWheelValue, 
-				bendingLinesVerticalTranslation);
-		
+		Matrix bendingLinesMatrix = createBendingLinesMatrix();
 		canvas.drawBitmap(bmpBendingLines, bendingLinesMatrix, bendingLinesPaint);
 	}
 	
@@ -191,12 +175,31 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	
 	private Paint createOverlayPaint(){
 		Paint overlayPaint = new Paint();
-		//overlayPaint.setAlpha(255-(int)steeringWheelValue);
+		if (steeringWheelValue/2 > 0 && steeringWheelValue/2 <=255) {
+			
+		overlayPaint.setAlpha(255-(int)steeringWheelValue/2);
+		}
+		else if (steeringWheelValue/2 < 0 && steeringWheelValue/2 > -255) {
+			overlayPaint.setAlpha(255+(int)steeringWheelValue/2);
+		}
+		else {
+			overlayPaint.setAlpha(0);
+		}
+			
 		return overlayPaint;
 	}
 	
 	private Paint createBendingLinesPaint() {
 		Paint bendingLinesPaint = new Paint();
+		if (steeringWheelValue > 0 && steeringWheelValue < 255){
+		bendingLinesPaint.setAlpha((int)steeringWheelValue);
+		}
+		else if (steeringWheelValue < 0 && steeringWheelValue > -255){
+			bendingLinesPaint.setAlpha(-(int)steeringWheelValue);
+		}
+		else {
+			bendingLinesPaint.setAlpha(255);
+		}
 		return bendingLinesPaint;
 	}
 	
@@ -278,6 +281,25 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		overlayMatrix.postTranslate(overlayHorizontalTranslation, 
 		overlayVerticalTranslation);
 			return overlayMatrix;
+	}
+	
+	private Matrix createBendingLinesMatrix() {
+		float screenToOverlayHeightRatio = computeScreenToOverlayHeightRatio();
+		float screenToOverlayWidthRatio = computeScreenToOverlayWidthRatio();
+		float overlayVerticalTranslation = computeOverlayVerticalTranslation();
+		float overlayHorizontalTranslation = computeOverlayHorizontalTranslation();
+		
+		//place bending lines directly on top of overlay by using same translations/ratios
+		float screenToBendingLinesHeightRatio = screenToOverlayHeightRatio;
+		float screenToBendingLinesWidthRatio = screenToOverlayWidthRatio;
+		float bendingLinesVerticalTranslation = overlayVerticalTranslation;
+		float bendingLinesHorizontalTranslation = overlayHorizontalTranslation;
+		
+		Matrix bendingLinesMatrix = new Matrix();
+		bendingLinesMatrix.preScale(screenToBendingLinesWidthRatio, screenToBendingLinesHeightRatio);
+		bendingLinesMatrix.postTranslate(bendingLinesHorizontalTranslation + (float)steeringWheelValue, 
+				bendingLinesVerticalTranslation);
+		return bendingLinesMatrix;
 	}
 	
 	//ibook translation computation methods

@@ -43,11 +43,11 @@ public class VehicleMonitoringService extends Service {
     				  }
     				  //TODO Log previous gear status to compare only shifting away from reverse
     				  
-    				  /*else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE) {
+    				  else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE) {
     					  Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
     					  sendBroadcast(unreversedIntent);
     					  Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
-    				  }*/
+    				  }
     			  }
     		  });
     	  }
