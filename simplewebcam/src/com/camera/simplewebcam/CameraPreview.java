@@ -297,7 +297,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		
 		Matrix bendingLinesMatrix = new Matrix();
 		bendingLinesMatrix.preScale(screenToBendingLinesWidthRatio, screenToBendingLinesHeightRatio);
-		bendingLinesMatrix.postTranslate(bendingLinesHorizontalTranslation + (float)steeringWheelValue, 
+		bendingLinesMatrix.postTranslate(bendingLinesHorizontalTranslation + (float)steeringWheelValue/2, 
 				bendingLinesVerticalTranslation);
 		return bendingLinesMatrix;
 	}

@@ -32,7 +32,7 @@ public class VehicleMonitoringService extends Service {
     		  mHandler.post(new Runnable() {
     			  public void run() {
 	        				
-   				  
+   				  //String transmissiongearstring = status.getValue().enumValue().toString();
     				  //only start activity if vehicle put in reverse if activity is not already active
     				  if (status.getValue().enumValue() == TransmissionGearPosition.GearPosition.REVERSE
     						  && !BackupCameraActivity.isRunning()){

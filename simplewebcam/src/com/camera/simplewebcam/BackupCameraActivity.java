@@ -107,6 +107,12 @@ public class BackupCameraActivity extends Activity {
 	
 //TODO
 	//write ondestroy to unbind from services/receivers  
+	@Override
+	public void onDestroy(){
+		activityRunning = false;
+	}
+	
+	
 	
 }
 	 
