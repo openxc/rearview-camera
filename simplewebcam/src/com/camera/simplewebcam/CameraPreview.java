@@ -48,7 +48,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	// The following variables are used to draw camera images.
     private float warningTextHorizontalTranslation=0;
     private float warningTextVerticalTranslation=0;
-    private double steeringWheelValue;
+
   
     // JNI functions
     public native int prepareCamera(int videoid);
@@ -77,7 +77,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     	   while (true && cameraExists) {
     		       		   
     		   //get steering wheel angle
-    		   steeringWheelValue = (float)VehicleMonitoringService.SteeringWheelAngle;
+    		  
     		   
     		   // obtaining a camera image (pixel data are stored in an array in JNI).
     		   processCamera();
@@ -174,6 +174,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	}
 	
 	private Paint createOverlayPaint(){
+		float steeringWheelValue = getSteeringWheelAngle(); 
 		Paint overlayPaint = new Paint();
 		if (steeringWheelValue/2 > 0 && steeringWheelValue/2 <=255) {
 			
@@ -190,6 +191,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	}
 	
 	private Paint createBendingLinesPaint() {
+		float steeringWheelValue = getSteeringWheelAngle(); 
 		Paint bendingLinesPaint = new Paint();
 		if (steeringWheelValue > 0 && steeringWheelValue < 255){
 		bendingLinesPaint.setAlpha((int)steeringWheelValue);
@@ -201,6 +203,12 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			bendingLinesPaint.setAlpha(255);
 		}
 		return bendingLinesPaint;
+	}
+	
+	//get steeringWheelAngle
+	private float getSteeringWheelAngle() {
+		float steeringWheelValue = (float)VehicleMonitoringService.SteeringWheelAngle;
+		return steeringWheelValue;
 	}
 	
 	//get coordinates methods
@@ -294,6 +302,9 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		float screenToBendingLinesWidthRatio = screenToOverlayWidthRatio;
 		float bendingLinesVerticalTranslation = overlayVerticalTranslation;
 		float bendingLinesHorizontalTranslation = overlayHorizontalTranslation;
+		
+		//get steering wheel angle
+		float steeringWheelValue = getSteeringWheelAngle(); 
 		
 		Matrix bendingLinesMatrix = new Matrix();
 		bendingLinesMatrix.preScale(screenToBendingLinesWidthRatio, screenToBendingLinesHeightRatio);

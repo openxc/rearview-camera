@@ -45,7 +45,6 @@ public class BackupCameraActivity extends Activity {
 	
 	@Override
 	public void onPause() {
-	       
 		super.onPause();
 		activityRunning = false;
 		android.os.Process.killProcess(android.os.Process.myPid());

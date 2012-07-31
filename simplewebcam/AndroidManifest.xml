@@ -4,7 +4,7 @@
       android:label="@string/app_name"
       android:versionCode="1"
       android:versionName="1.0">
-    <application android:icon="@drawable/backupcamicon">
+    <application android:icon="@drawable/backupcamicon2">
         <activity android:name="com.camera.simplewebcam.BackupCameraActivity" 
             	android:label="@string/app_name"
             	android:screenOrientation="sensorLandscape">
