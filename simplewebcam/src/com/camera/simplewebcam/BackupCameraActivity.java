@@ -29,17 +29,12 @@ public class BackupCameraActivity extends Activity {
 		//start monitoring service if not already started on boot
     	Intent VehicleMonitoringServiceIntent = new Intent(BackupCameraActivity.this, VehicleMonitoringService.class);
     	startService(VehicleMonitoringServiceIntent);	
-     	Log.w(TAG, "Starting Service from BootupReceiver");
+     	Log.w(TAG, "Starting Service from BackupCameraActivity");
 		
-		//create intent filter to listen for unreversing of vehicle to close activity
-		IntentFilter closeFilter = new IntentFilter();
-		closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
-		registerReceiver(closeReceiver, closeFilter);
+	
+     	registerCloseReceiver();
+		registerMUsbReceiver();
 		
-		IntentFilter usbfilter = new IntentFilter();
-        usbfilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        usbfilter.addAction("com.ford.openxc.NO_CAMERA_DETECTED");
-        registerReceiver(mUsbReceiver, usbfilter);
         
 	}
 	
@@ -47,17 +42,36 @@ public class BackupCameraActivity extends Activity {
 	public void onPause() {
 		super.onPause();
 		activityRunning = false;
+		unregisterReceiver(mUsbReceiver);
+		unregisterReceiver(closeReceiver);
 		android.os.Process.killProcess(android.os.Process.myPid());
-		
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
 		activityRunning = true;
+		registerCloseReceiver();
+		registerMUsbReceiver();
 		
 	}
 	
+	private void registerMUsbReceiver() {
+		IntentFilter usbfilter = new IntentFilter();
+        usbfilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        usbfilter.addAction("com.ford.openxc.NO_CAMERA_DETECTED");
+        registerReceiver(mUsbReceiver, usbfilter);
+		
+	}
+
+	private void registerCloseReceiver() {
+		//create intent filter to listen for unreversing of vehicle to close activity
+		IntentFilter closeFilter = new IntentFilter();
+		closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
+		registerReceiver(closeReceiver, closeFilter);
+		
+	}
+
 	BroadcastReceiver closeReceiver = new BroadcastReceiver() {
 		
 		@Override
@@ -78,8 +92,7 @@ public class BackupCameraActivity extends Activity {
 	public void finish() {
 		activityRunning = false;
 		super.finish();
-		//do we want to use "android.os.Process.killProcess(android.os.Process.myPid());" instead of super.finish()?
-
+		//android.os.Process.killProcess(android.os.Process.myPid());
 	}
 	 
 	public void usbError(){
