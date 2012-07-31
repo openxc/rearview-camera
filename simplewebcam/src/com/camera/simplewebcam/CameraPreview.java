@@ -44,11 +44,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	// Webcam must support the resolution 640x480 with YUYV format. 
 	static final int IMG_WIDTH=640;
 	static final int IMG_HEIGHT=480;
-
-	// The following variables are used to draw camera images.
-    private float warningTextHorizontalTranslation=0;
-    private float warningTextVerticalTranslation=0;
-
   
     // JNI functions
     public native int prepareCamera(int videoid);
@@ -75,10 +70,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     public void run() {
     	if (cameraExists) {
     	   while (true && cameraExists) {
-    		       		   
-    		   //get steering wheel angle
-    		  
-    		   
+
     		   // obtaining a camera image (pixel data are stored in an array in JNI).
     		   processCamera();
     		   
@@ -176,7 +168,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	private Paint createOverlayPaint(){
 		float steeringWheelValue = getSteeringWheelAngle(); 
 		Paint overlayPaint = new Paint();
-		if (steeringWheelValue/2 > 0 && steeringWheelValue/2 <=255) {
+		if (steeringWheelValue/2 >= 0 && steeringWheelValue/2 <=255) {
 			
 		overlayPaint.setAlpha(255-(int)steeringWheelValue/2);
 		}
@@ -193,7 +185,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	private Paint createBendingLinesPaint() {
 		float steeringWheelValue = getSteeringWheelAngle(); 
 		Paint bendingLinesPaint = new Paint();
-		if (steeringWheelValue > 0 && steeringWheelValue < 255){
+		if (steeringWheelValue >= 0 && steeringWheelValue < 255){
 		bendingLinesPaint.setAlpha((int)steeringWheelValue);
 		}
 		else if (steeringWheelValue < 0 && steeringWheelValue > -255){

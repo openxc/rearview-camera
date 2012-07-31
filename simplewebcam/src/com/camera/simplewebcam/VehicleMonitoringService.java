@@ -60,8 +60,7 @@ public class VehicleMonitoringService extends Service {
     		  mHandler.post(new Runnable() {
     			  public void run() {
     				  SteeringWheelAngle = angle.getValue().doubleValue();
-    				  Log.w(TAG , "Steering Wheel Angle = "+SteeringWheelAngle);
-                  }
+    			  }
               });
           }
       };
