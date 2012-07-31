@@ -26,25 +26,33 @@ public class BackupCameraActivity extends Activity {
 		cp = new CameraPreview(this);
 		setContentView(cp);
 		
-		//start monitoring service if not already started on boot
-    	Intent VehicleMonitoringServiceIntent = new Intent(BackupCameraActivity.this, VehicleMonitoringService.class);
-    	startService(VehicleMonitoringServiceIntent);	
-     	Log.w(TAG, "Starting Service from BackupCameraActivity");
+		//start monitoring service
+    	
+		startVehicleMonitoringService();
 		
-	
+		
      	registerCloseReceiver();
 		registerMUsbReceiver();
 		
         
 	}
 	
+	private void startVehicleMonitoringService() {
+		
+		Intent VehicleMonitoringServiceIntent = new Intent(BackupCameraActivity.this, VehicleMonitoringService.class);
+    	startService(VehicleMonitoringServiceIntent);	
+     	Log.w(TAG, "Starting Service from BackupCameraActivity");
+		
+	}
+
 	@Override
 	public void onPause() {
 		super.onPause();
 		activityRunning = false;
 		unregisterReceiver(mUsbReceiver);
 		unregisterReceiver(closeReceiver);
-		android.os.Process.killProcess(android.os.Process.myPid());
+		//android.os.Process.killProcess(android.os.Process.myPid());
+	 Log.w(TAG, "in onPause");	
 	}
 	
 	@Override
@@ -53,7 +61,8 @@ public class BackupCameraActivity extends Activity {
 		activityRunning = true;
 		registerCloseReceiver();
 		registerMUsbReceiver();
-		
+		 Log.w(TAG, "in onResume");	
+
 	}
 	
 	private void registerMUsbReceiver() {
@@ -90,8 +99,11 @@ public class BackupCameraActivity extends Activity {
     };
 	
 	public void finish() {
+		this.finish();
 		activityRunning = false;
-		super.finish();
+		Log.w(TAG, "in onfinish");
+		//unregisterReceiver(mUsbReceiver);
+		//unregisterReceiver(closeReceiver);
 		//android.os.Process.killProcess(android.os.Process.myPid());
 	}
 	 
@@ -122,6 +134,7 @@ public class BackupCameraActivity extends Activity {
 	@Override
 	public void onDestroy(){
 		activityRunning = false;
+		Log.w(TAG, "in ondestroy");
 	}
 	
 	
