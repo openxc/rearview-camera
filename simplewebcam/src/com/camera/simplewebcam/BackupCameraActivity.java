@@ -36,14 +36,6 @@ public class BackupCameraActivity extends Activity {
 		
 	}
 	
-	public void startVehicleMonitoringService() {
-		
-		Intent VehicleMonitoringServiceIntent = new Intent(BackupCameraActivity.this, VehicleMonitoringService.class);
-    	startService(VehicleMonitoringServiceIntent);	
-     	Log.w(TAG, "Starting Service from BackupCameraActivity");
-		
-	}
-
 	@Override
 	public void onPause() {
 		super.onPause();
@@ -57,11 +49,30 @@ public class BackupCameraActivity extends Activity {
 		activityRunning = true;
 		registerCloseReceiver();
 		registerMUsbReceiver();
-		 Log.w(TAG, "in onResume");	
+		Log.w(TAG, "in onResume");	
 
 	}
 	
+	@Override
+	public void onDestroy(){
+		super.onDestroy();
+		Log.w(TAG, "in ondestroy");
+
+		activityRunning = false;
+		unregisterReceiver(mUsbReceiver);
+		unregisterReceiver(closeReceiver);
+	}
+	
+	public void startVehicleMonitoringService() {
+		
+		Intent VehicleMonitoringServiceIntent = new Intent(BackupCameraActivity.this, VehicleMonitoringService.class);
+    	startService(VehicleMonitoringServiceIntent);	
+     	Log.w(TAG, "Starting Service from BackupCameraActivity");
+		
+	}
+	
 	private void registerMUsbReceiver() {
+		//create intent filter to listen for detachment of usb in order to close activity
 		IntentFilter usbfilter = new IntentFilter();
         usbfilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         usbfilter.addAction("com.ford.openxc.NO_CAMERA_DETECTED");
@@ -117,22 +128,12 @@ public class BackupCameraActivity extends Activity {
 
 	}
 
-	@Override
-	public void onDestroy(){
-		super.onDestroy();
-		Log.w(TAG, "in ondestroy");
-
-		activityRunning = false;
-		unregisterReceiver(mUsbReceiver);
-		unregisterReceiver(closeReceiver);
-	}
-	
 	public static boolean isRunning() {
 		return activityRunning;
 		
 	}
-	
 }
+
 	 
 	
 

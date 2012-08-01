@@ -200,7 +200,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	//get steeringWheelAngle
 	private float getSteeringWheelAngle() {
 		float steeringWheelValue = (float)VehicleMonitoringService.SteeringWheelAngle;
-		return steeringWheelValue;
+			return steeringWheelValue;
 	}
 	
 	//get coordinates methods
@@ -427,6 +427,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		if(DEBUG) Log.d("WebCam", "surfaceCreated");
+		//if null, create each bitmap
 		if(bmpVideoFeed==null){
 			
 			bmpVideoFeed = Bitmap.createBitmap(IMG_WIDTH, IMG_HEIGHT, Bitmap.Config.ARGB_8888);
