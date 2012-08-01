@@ -188,10 +188,13 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		bendingLinesMatrix.preScale(screenToBendingLinesWidthRatio, screenToBendingLinesHeightRatio);
 		
 		
-		bendingLinesMatrix.postTranslate(bendingLinesHorizontalTranslation + (float)steeringWheelValue/2, 
+		bendingLinesMatrix.postTranslate(bendingLinesHorizontalTranslation + 3*(float)steeringWheelValue/2, 
 				bendingLinesVerticalTranslation);
 		
-		bendingLinesMatrix.preSkew(-steeringWheelValue/100, steeringWheelValue/1000);
+		//number divided by must be larger than the maximum absolute value the steering wheel can produce because the x skew
+		//must be less than 1
+		bendingLinesMatrix.postSkew(-steeringWheelValue/480, 0);
+	
 		return bendingLinesMatrix;
 	}
 	
@@ -333,7 +336,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	private float computeOverlayVerticalTranslation() {
 		float screenHeight = getScreenHeight();
 		float adjustedOverlayHeight = computeAdjustedOverlayHeight();
-		float overlayVerticalTranslation = (float)(0.5*screenHeight)-(float)(0.35*adjustedOverlayHeight);
+		float overlayVerticalTranslation = (float)(0.5*screenHeight)-(float)(0.45*adjustedOverlayHeight);
 		return overlayVerticalTranslation;
 	}
 	
@@ -353,13 +356,13 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	//screen to overlay ratio computation methods
 	private float computeScreenToOverlayHeightRatio() {
 		float screenHeight = getScreenHeight();
-		float screenToOverlayHeightRatio = (float)0.5*screenHeight/(float)bmpOverlayLines.getHeight();
+		float screenToOverlayHeightRatio = (float)0.65*screenHeight/(float)bmpOverlayLines.getHeight();
 			return screenToOverlayHeightRatio;
 	}
 	
 	private float computeScreenToOverlayWidthRatio() {
 		float screenWidth = getScreenWidth();
-		float screenToOverlayWidthRatio = (float)0.75*screenWidth/(float)bmpOverlayLines.getWidth();
+		float screenToOverlayWidthRatio = (float)0.85*screenWidth/(float)bmpOverlayLines.getWidth();
 			return screenToOverlayWidthRatio;
 	}
 	
