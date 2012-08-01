@@ -34,7 +34,7 @@ public class VehicleMonitoringService extends Service {
     			  public void run() {
     				
     				  //only start activity if vehicle put in reverse if activity is not already active
-    				  if (status.getValue().enumValue() == TransmissionGearPosition.GearPosition.FIRST
+    				  if (status.getValue().enumValue() == TransmissionGearPosition.GearPosition.REVERSE
     						  && !BackupCameraActivity.isRunning()){
     					  Intent launchIntent = new Intent(VehicleMonitoringService.this, BackupCameraActivity.class);
     					  launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
