@@ -30,14 +30,13 @@ public class BackupCameraActivity extends Activity {
     	
 		startVehicleMonitoringService();
 		
-		
+		//register for receivers
      	registerCloseReceiver();
 		registerMUsbReceiver();
 		
-        
 	}
 	
-	private void startVehicleMonitoringService() {
+	public void startVehicleMonitoringService() {
 		
 		Intent VehicleMonitoringServiceIntent = new Intent(BackupCameraActivity.this, VehicleMonitoringService.class);
     	startService(VehicleMonitoringServiceIntent);	
@@ -49,10 +48,7 @@ public class BackupCameraActivity extends Activity {
 	public void onPause() {
 		super.onPause();
 		activityRunning = false;
-		unregisterReceiver(mUsbReceiver);
-		unregisterReceiver(closeReceiver);
-		//android.os.Process.killProcess(android.os.Process.myPid());
-	 Log.w(TAG, "in onPause");	
+		Log.w(TAG, "in onPause");	
 	}
 	
 	@Override
@@ -99,12 +95,9 @@ public class BackupCameraActivity extends Activity {
     };
 	
 	public void finish() {
-		this.finish();
+		super.finish();
 		activityRunning = false;
-		Log.w(TAG, "in onfinish");
-		//unregisterReceiver(mUsbReceiver);
-		//unregisterReceiver(closeReceiver);
-		//android.os.Process.killProcess(android.os.Process.myPid());
+		Log.w(TAG, "in finish");
 	}
 	 
 	public void usbError(){
@@ -123,21 +116,21 @@ public class BackupCameraActivity extends Activity {
 	        }).show();
 
 	}
+
+	@Override
+	public void onDestroy(){
+		super.onDestroy();
+		Log.w(TAG, "in ondestroy");
+
+		activityRunning = false;
+		unregisterReceiver(mUsbReceiver);
+		unregisterReceiver(closeReceiver);
+	}
 	
 	public static boolean isRunning() {
 		return activityRunning;
 		
 	}
-	
-//TODO
-	//write ondestroy to unbind from services/receivers  
-	@Override
-	public void onDestroy(){
-		activityRunning = false;
-		Log.w(TAG, "in ondestroy");
-	}
-	
-	
 	
 }
 	 

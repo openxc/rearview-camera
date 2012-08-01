@@ -25,14 +25,14 @@ public class VehicleMonitoringService extends Service {
     public static final String ACTION_VEHICLE_REVERSED = "com.ford.openxc.VEHICLE_REVERSED";
     public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
     
+    
       TransmissionGearPosition.Listener mTransmissionGearPos =
     		  new TransmissionGearPosition.Listener() {
     	  public void receive(Measurement measurement) {
     		  final TransmissionGearPosition status = (TransmissionGearPosition) measurement;
     		  mHandler.post(new Runnable() {
     			  public void run() {
-	        				
-   				  //String transmissiongearstring = status.getValue().enumValue().toString();
+    				
     				  //only start activity if vehicle put in reverse if activity is not already active
     				  if (status.getValue().enumValue() == TransmissionGearPosition.GearPosition.REVERSE
     						  && !BackupCameraActivity.isRunning()){
@@ -41,9 +41,8 @@ public class VehicleMonitoringService extends Service {
     					  VehicleMonitoringService.this.startActivity(launchIntent);
     					  Log.i(TAG, "Activity Launched");
     				  }
-    				  //TODO Log previous gear status to compare only shifting away from reverse
-    				  
-    				  else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE) {
+    				  else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE
+    						  && BackupCameraActivity.isRunning()) {
     					  Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
     					  sendBroadcast(unreversedIntent);
     					  Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
@@ -101,6 +100,13 @@ public class VehicleMonitoringService extends Service {
 		bindService(new Intent(this, VehicleManager.class),
 	                mConnection, Context.BIND_AUTO_CREATE);
 	}
+
 	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		Log.w(TAG, "In ondestroy");
+		unbindService(mConnection);
+	}
 	
 }
