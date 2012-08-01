@@ -112,6 +112,8 @@ public class BackupCameraActivity extends Activity {
 	}
 	 
 	public void usbError(){
+		
+		if (activityRunning == true) {
 	        Vibrator vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 	        vibrator.vibrate(2000);
 
@@ -125,6 +127,11 @@ public class BackupCameraActivity extends Activity {
 	        		android.os.Process.killProcess(android.os.Process.myPid());
 	            }
 	        }).show();
+		}
+		else if (activityRunning == false) {
+
+	        android.os.Process.killProcess(android.os.Process.myPid());
+		}
 
 	}
 
