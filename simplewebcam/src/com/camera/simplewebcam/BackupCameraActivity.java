@@ -130,7 +130,6 @@ public class BackupCameraActivity extends Activity {
 
 	public static boolean isRunning() {
 		return activityRunning;
-		
 	}
 }
 
