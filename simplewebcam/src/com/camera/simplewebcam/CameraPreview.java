@@ -131,6 +131,70 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		canvas.drawBitmap(bmpBendingLines, bendingLinesMatrix, bendingLinesPaint);
 	}
 	
+    //matrix creation methods
+	private Matrix createIbookMatrix() {
+		float screenToIbookHeightRatio = computeScreenToIbookHeightRatio();
+		float screenToIbookWidthRatio = computeScreenToIbookWidthRatio();
+		float ibookHorizontalTranslation = computeIbookHorizontalTranslation();
+		float ibookVerticalTranslation = computeIbookVerticalTranslation();
+		Matrix ibookMatrix = new Matrix();
+		ibookMatrix.preScale(screenToIbookWidthRatio, screenToIbookHeightRatio);
+		ibookMatrix.postTranslate(ibookHorizontalTranslation, ibookVerticalTranslation);
+			return ibookMatrix;
+	}
+	
+	private Matrix createVideoFeedMatrix() {
+		float screenHeight = getScreenHeight();
+		float screenWidth = getScreenWidth();
+		float screenToFeedWidthRatio = computeScreenToFeedWidthRatio();
+		float screenToFeedHeightRatio = computeScreenToFeedHeightRatio();
+		float adjustedVideoFeedWidth = computeAdjustedVideoFeedWidth();
+		float adjustedVideoFeedHeight = computeAdjustedVideoFeedHeight();
+		Matrix videoFeedMatrix = new Matrix();
+		videoFeedMatrix.preScale(-screenToFeedWidthRatio, screenToFeedHeightRatio);
+		videoFeedMatrix.postTranslate((float)(0.5*screenWidth)+(float)(0.5*adjustedVideoFeedWidth),
+ 			(float)(0.5*screenHeight)-(float)(0.5*adjustedVideoFeedHeight));
+			return videoFeedMatrix;
+	}
+	
+	private Matrix createOverlayMatrix() {
+		float screenToOverlayWidthRatio = computeScreenToOverlayWidthRatio();
+		float screenToOverlayHeightRatio = computeScreenToOverlayHeightRatio();
+		float overlayVerticalTranslation = computeOverlayVerticalTranslation();
+		float overlayHorizontalTranslation = computeOverlayHorizontalTranslation();
+		Matrix overlayMatrix = new Matrix();
+		overlayMatrix.preScale(screenToOverlayWidthRatio, screenToOverlayHeightRatio);
+		overlayMatrix.postTranslate(overlayHorizontalTranslation, 
+		overlayVerticalTranslation);
+			return overlayMatrix;
+	}
+	
+	private Matrix createBendingLinesMatrix() {
+		float screenToOverlayHeightRatio = computeScreenToOverlayHeightRatio();
+		float screenToOverlayWidthRatio = computeScreenToOverlayWidthRatio();
+		float overlayVerticalTranslation = computeOverlayVerticalTranslation();
+		float overlayHorizontalTranslation = computeOverlayHorizontalTranslation();
+		
+		//place bending lines directly on top of overlay by using same translations/ratios
+		float screenToBendingLinesHeightRatio = screenToOverlayHeightRatio;
+		float screenToBendingLinesWidthRatio = screenToOverlayWidthRatio;
+		float bendingLinesVerticalTranslation = overlayVerticalTranslation;
+		float bendingLinesHorizontalTranslation = overlayHorizontalTranslation;
+		
+		//get steering wheel angle
+		float steeringWheelValue = getSteeringWheelAngle(); 
+		
+		Matrix bendingLinesMatrix = new Matrix();
+		bendingLinesMatrix.preScale(screenToBendingLinesWidthRatio, screenToBendingLinesHeightRatio);
+		
+		
+		bendingLinesMatrix.postTranslate(bendingLinesHorizontalTranslation + (float)steeringWheelValue/2, 
+				bendingLinesVerticalTranslation);
+		
+		bendingLinesMatrix.preSkew(-steeringWheelValue/100, steeringWheelValue/1000);
+		return bendingLinesMatrix;
+	}
+	
 	//text drawing methods
 	private void drawWarningTextOutline(Canvas canvas) {
 		Paint warningTextPaint = createWarningTextPaint();
@@ -245,66 +309,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     		return overlayLeftCoordinate; 
     }
     
-    //matrix creation methods
-	private Matrix createIbookMatrix() {
-		float screenToIbookHeightRatio = computeScreenToIbookHeightRatio();
-		float screenToIbookWidthRatio = computeScreenToIbookWidthRatio();
-		float ibookHorizontalTranslation = computeIbookHorizontalTranslation();
-		float ibookVerticalTranslation = computeIbookVerticalTranslation();
-		Matrix ibookMatrix = new Matrix();
-		ibookMatrix.preScale(screenToIbookWidthRatio, screenToIbookHeightRatio);
-		ibookMatrix.postTranslate(ibookHorizontalTranslation, ibookVerticalTranslation);
-			return ibookMatrix;
-	}
-	
-	private Matrix createVideoFeedMatrix() {
-		float screenHeight = getScreenHeight();
-		float screenWidth = getScreenWidth();
-		float screenToFeedWidthRatio = computeScreenToFeedWidthRatio();
-		float screenToFeedHeightRatio = computeScreenToFeedHeightRatio();
-		float adjustedVideoFeedWidth = computeAdjustedVideoFeedWidth();
-		float adjustedVideoFeedHeight = computeAdjustedVideoFeedHeight();
-		Matrix videoFeedMatrix = new Matrix();
-		videoFeedMatrix.preScale(-screenToFeedWidthRatio, screenToFeedHeightRatio);
-		videoFeedMatrix.postTranslate((float)(0.5*screenWidth)+(float)(0.5*adjustedVideoFeedWidth),
- 			(float)(0.5*screenHeight)-(float)(0.5*adjustedVideoFeedHeight));
-			return videoFeedMatrix;
-	}
-	
-	private Matrix createOverlayMatrix() {
-		float screenToOverlayWidthRatio = computeScreenToOverlayWidthRatio();
-		float screenToOverlayHeightRatio = computeScreenToOverlayHeightRatio();
-		float overlayVerticalTranslation = computeOverlayVerticalTranslation();
-		float overlayHorizontalTranslation = computeOverlayHorizontalTranslation();
-		Matrix overlayMatrix = new Matrix();
-		overlayMatrix.preScale(screenToOverlayWidthRatio, screenToOverlayHeightRatio);
-		overlayMatrix.postTranslate(overlayHorizontalTranslation, 
-		overlayVerticalTranslation);
-			return overlayMatrix;
-	}
-	
-	private Matrix createBendingLinesMatrix() {
-		float screenToOverlayHeightRatio = computeScreenToOverlayHeightRatio();
-		float screenToOverlayWidthRatio = computeScreenToOverlayWidthRatio();
-		float overlayVerticalTranslation = computeOverlayVerticalTranslation();
-		float overlayHorizontalTranslation = computeOverlayHorizontalTranslation();
-		
-		//place bending lines directly on top of overlay by using same translations/ratios
-		float screenToBendingLinesHeightRatio = screenToOverlayHeightRatio;
-		float screenToBendingLinesWidthRatio = screenToOverlayWidthRatio;
-		float bendingLinesVerticalTranslation = overlayVerticalTranslation;
-		float bendingLinesHorizontalTranslation = overlayHorizontalTranslation;
-		
-		//get steering wheel angle
-		float steeringWheelValue = getSteeringWheelAngle(); 
-		
-		Matrix bendingLinesMatrix = new Matrix();
-		bendingLinesMatrix.preScale(screenToBendingLinesWidthRatio, screenToBendingLinesHeightRatio);
-		bendingLinesMatrix.postTranslate(bendingLinesHorizontalTranslation + (float)steeringWheelValue/2, 
-				bendingLinesVerticalTranslation);
-		return bendingLinesMatrix;
-	}
-	
 	//ibook translation computation methods
 	private float computeIbookVerticalTranslation() {
 		float screenHeight = getScreenHeight();

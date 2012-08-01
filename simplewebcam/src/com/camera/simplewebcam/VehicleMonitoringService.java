@@ -42,12 +42,12 @@ public class VehicleMonitoringService extends Service {
     					  Log.i(TAG, "Activity Launched");
     				  }
     				  //only send close intent if vehicle is not in reverse and activity is running
-    				  /*else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE
+    				  else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE
     						  && BackupCameraActivity.isRunning()) {
     					  Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
     					  sendBroadcast(unreversedIntent);
     					  Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
-    				  }*/
+    				  }
     			  }
     		  });
     	  }

@@ -117,7 +117,7 @@ public class BackupCameraActivity extends Activity {
 
 	        new AlertDialog.Builder(this)
 	        .setTitle("USB Device Unplugged!")
-	        .setMessage("FordBackupCam is closing. Please insert device(s) and reopen from main menu.")
+	        .setMessage("FordBackupCam is closing. Please reconnect device(s) and reopen from main menu.")
 	        .setCancelable(false)
 	        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
 	        	public void onClick(DialogInterface dialog, int id) {
