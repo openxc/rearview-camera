@@ -27,7 +27,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	private Bitmap bmpOverlayLines=null;
 	private Bitmap bmpIbook=null;
 	private Bitmap bmpWarningText=null;
-	private Bitmap bmpBendingLines=null;
+	private Bitmap bmpDynamicLines=null;
 	
 	private static final String TAG = "CameraPreview";
 
@@ -86,7 +86,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     			   drawVideoFeedBitmap(canvas);
     			   drawOverlayLinesBitmap(canvas);
     			   drawIbookBitmap(canvas);
-    			   drawBendingLinesBitmap(canvas);
+    			   drawDynamicLinesBitmap(canvas);
     			   
     			   //must draw outline paint first, otherwise yields thick black text with small white inside
     			   drawWarningTextOutline(canvas);
@@ -120,8 +120,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		canvas.drawBitmap(bmpIbook, createIbookMatrix(), null);
 	}
 
-	private void drawBendingLinesBitmap(Canvas canvas) {
-		canvas.drawBitmap(bmpBendingLines, createBendingLinesMatrix(), createBendingLinesPaint());
+	private void drawDynamicLinesBitmap(Canvas canvas) {
+		canvas.drawBitmap(bmpDynamicLines, createDynamicLinesMatrix(), createDynamicLinesPaint());
 	}
 	
 	/**matrix creation methods**/
@@ -157,25 +157,25 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		return ibookMatrix;
 	}
 
-	private Matrix createBendingLinesMatrix() {
+	private Matrix createDynamicLinesMatrix() {
 		
-		//place bending lines directly on top of overlay by using same translations/ratios
-		float screenToBendingLinesHeightRatio = computeScreenToOverlayHeightRatio();
-		float screenToBendingLinesWidthRatio = computeScreenToOverlayWidthRatio();
-		float bendingLinesVerticalTranslation = computeOverlayVerticalTranslation();
-		float bendingLinesHorizontalTranslation = computeOverlayHorizontalTranslation();
+		//place dynamic lines directly on top of overlay by using same translations/ratios
+		float screenToDynamicLinesHeightRatio = computeScreenToOverlayHeightRatio();
+		float screenToDynamicLinesWidthRatio = computeScreenToOverlayWidthRatio();
+		float dynamicLinesVerticalTranslation = computeOverlayVerticalTranslation();
+		float dynamicLinesHorizontalTranslation = computeOverlayHorizontalTranslation();
 
-		Matrix bendingLinesMatrix = new Matrix();
+		Matrix dynamicLinesMatrix = new Matrix();
 		
-		bendingLinesMatrix.preScale(screenToBendingLinesWidthRatio, screenToBendingLinesHeightRatio);
-		bendingLinesMatrix.postTranslate(bendingLinesHorizontalTranslation + 3*(float)getSteeringWheelAngle()/2, 
-				bendingLinesVerticalTranslation);
+		dynamicLinesMatrix.preScale(screenToDynamicLinesWidthRatio, screenToDynamicLinesHeightRatio);
+		dynamicLinesMatrix.postTranslate(dynamicLinesHorizontalTranslation + 3*(float)getSteeringWheelAngle()/2, 
+				dynamicLinesVerticalTranslation);
 		
 		//number divided by must be larger than the maximum absolute value the steering wheel can produce because the x skew
 		//must be less than 1
-		bendingLinesMatrix.postSkew(-getSteeringWheelAngle()/480, 0);
+		dynamicLinesMatrix.postSkew(-getSteeringWheelAngle()/480, 0);
 			
-		return bendingLinesMatrix;
+		return dynamicLinesMatrix;
 	}
 	
 	/**text drawing methods**/
@@ -229,22 +229,22 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		return overlayPaint;
 	}
 
-	private Paint createBendingLinesPaint() {
+	private Paint createDynamicLinesPaint() {
 		
 		float steeringWheelValue = getSteeringWheelAngle(); 
-		Paint bendingLinesPaint = new Paint();
+		Paint dynamicLinesPaint = new Paint();
 		
 		if (steeringWheelValue >= 0 && steeringWheelValue < 255){
-			bendingLinesPaint.setAlpha((int)steeringWheelValue);
+			dynamicLinesPaint.setAlpha((int)steeringWheelValue);
 		}
 		else if (steeringWheelValue < 0 && steeringWheelValue > -255){
-			bendingLinesPaint.setAlpha(-(int)steeringWheelValue);
+			dynamicLinesPaint.setAlpha(-(int)steeringWheelValue);
 		}
 		else {
-			bendingLinesPaint.setAlpha(255);
+			dynamicLinesPaint.setAlpha(255);
 		}
 		
-		return bendingLinesPaint;
+		return dynamicLinesPaint;
 	}
 	
 	/**steering wheel angle retrieval method**/
@@ -389,9 +389,9 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			bmpIbook = BitmapFactory.decodeResource(getResources(), R.drawable.ibook);
 		}
 		
-		if(bmpBendingLines==null){
+		if(bmpDynamicLines==null){
 			
-			bmpBendingLines = BitmapFactory.decodeResource(getResources(), R.drawable.bendinglines);
+			bmpDynamicLines = BitmapFactory.decodeResource(getResources(), R.drawable.dynamiclines);
 		}
 		
 		// /dev/videox (x=cameraId + cameraBase) is used
