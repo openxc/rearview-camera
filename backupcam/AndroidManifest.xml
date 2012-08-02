@@ -19,7 +19,7 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"
                 android:resource="@xml/device_filter" />
         </activity>
-        <service android:name="com.openxc.VehicleManagerager"/>
+        <service android:name="com.openxc.VehicleManager"/>
         <service android:name=".VehicleMonitoringService"/>
         <receiver android:name="com.ford.openxc.backupcam.BootupReceiver">
         	<intent-filter>
