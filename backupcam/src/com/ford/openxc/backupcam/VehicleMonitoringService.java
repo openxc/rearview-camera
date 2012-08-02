@@ -113,7 +113,7 @@ public class VehicleMonitoringService extends Service {
 	public void onCreate() {
 		super.onCreate();
 		bindService(new Intent(this, VehicleManager.class),
-	                mConnection, Context.BIND_AUTO_CREATE);
+				mConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override

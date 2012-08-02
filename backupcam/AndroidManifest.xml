@@ -28,6 +28,7 @@
             </intent-filter>
         </receiver>
 	</application>
+	<!-- TODO  move this above application if all else works-->
     <uses-sdk android:targetSdkVersion="12" android:minSdkVersion="8"></uses-sdk>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
