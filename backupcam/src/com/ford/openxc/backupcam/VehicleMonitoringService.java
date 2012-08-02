@@ -1,5 +1,7 @@
 package com.ford.openxc.backupcam;
 
+/**Binds to vehiclemanager.  Adds a listener for steering wheel angle and transmission gear position**/
+
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -25,70 +27,65 @@ public class VehicleMonitoringService extends Service {
     public static final String ACTION_VEHICLE_REVERSED = "com.ford.openxc.VEHICLE_REVERSED";
     public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
     
-    
-      TransmissionGearPosition.Listener mTransmissionGearPos =
-    		  new TransmissionGearPosition.Listener() {
-    	  public void receive(Measurement measurement) {
-    		  final TransmissionGearPosition status = (TransmissionGearPosition) measurement;
-    		  mHandler.post(new Runnable() {
-    			  public void run() {
+    TransmissionGearPosition.Listener mTransmissionGearPos =
+    		new TransmissionGearPosition.Listener() {
+    	public void receive(Measurement measurement) {
+    		final TransmissionGearPosition status = (TransmissionGearPosition) measurement;
+    		mHandler.post(new Runnable() {
+    			public void run() {
     				
-    				  //only start activity if vehicle put in reverse if activity is not already active
-    				  if (status.getValue().enumValue() == TransmissionGearPosition.GearPosition.REVERSE
-    						  && !BackupCameraActivity.isRunning()){
-    					  Intent launchIntent = new Intent(VehicleMonitoringService.this, BackupCameraActivity.class);
-    					  launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    					  VehicleMonitoringService.this.startActivity(launchIntent);
-    					  Log.i(TAG, "Activity Launched");
-    				  }
-    				  //only send close intent if vehicle is not in reverse and activity is running
-    				  else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE
-    						  && BackupCameraActivity.isRunning()) {
-    					  Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
-    					  sendBroadcast(unreversedIntent);
-    					  Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
-    				  }
-    			  }
-    		  });
-    	  }
-      };
+    				//only start activity if vehicle put in reverse if activity is not already active
+    				if (status.getValue().enumValue() == TransmissionGearPosition.GearPosition.REVERSE
+    						&& !BackupCameraActivity.isRunning()){
+    					
+    					startBackupCameraActivity();
+    				}
+    				//only send close intent if vehicle is not in reverse and activity is running
+    				else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE
+    						&& BackupCameraActivity.isRunning()) {
+    					
+    					sendVehicleUnreversedBroadcast();
+    				}
+    			}
+    		});
+    	}
+    };
       
-      SteeringWheelAngle.Listener mSteeringWheelListener =
-    		  new SteeringWheelAngle.Listener() {
-    	  public void receive(Measurement measurement) {
-    		  final SteeringWheelAngle angle = (SteeringWheelAngle) measurement;
-    		  mHandler.post(new Runnable() {
-    			  public void run() {
-    				  SteeringWheelAngle = angle.getValue().doubleValue();
-    			  }
-              });
-          }
-      };
+    SteeringWheelAngle.Listener mSteeringWheelListener =
+    		new SteeringWheelAngle.Listener() {
+    	public void receive(Measurement measurement) {
+    		final SteeringWheelAngle angle = (SteeringWheelAngle) measurement;
+    		mHandler.post(new Runnable() {
+    			public void run() {
+    				SteeringWheelAngle = angle.getValue().doubleValue();
+    			}
+    		});
+    	}
+    };
 		
-      ServiceConnection mConnection = new ServiceConnection() {
-    	  public void onServiceConnected(ComponentName className,
-	                IBinder service) {
-	            		Log.i(TAG, "Bound to VehicleManager");
-	            		mVehicleManager = ((VehicleManager.VehicleBinder)service).getService();
+    ServiceConnection mConnection = new ServiceConnection() {
+    	public void onServiceConnected(ComponentName className,
+    			IBinder service) {
+    		Log.i(TAG, "Bound to VehicleManager");
+    		mVehicleManager = ((VehicleManager.VehicleBinder)service).getService();
+    		
+    		try {
+    			mVehicleManager.addListener(TransmissionGearPosition.class,
+    					mTransmissionGearPos);
+    			mVehicleManager.addListener(SteeringWheelAngle.class,
+    					mSteeringWheelListener);
+    		} catch(VehicleServiceException e) {
+    			Log.w(TAG, "Couldn't add listeners for measurements", e);
+    		} catch(UnrecognizedMeasurementTypeException e) {
+    			Log.w(TAG, "Couldn't add listeners for measurements", e);
+    		}
+    	}
 
-	            		try {
-	            			mVehicleManager.addListener(TransmissionGearPosition.class,
-	            					mTransmissionGearPos);
-	            			mVehicleManager.addListener(SteeringWheelAngle.class,
-	                                mSteeringWheelListener);
-	                
-	            		} catch(VehicleServiceException e) {
-	            			Log.w(TAG, "Couldn't add listeners for measurements", e);
-	            		} catch(UnrecognizedMeasurementTypeException e) {
-	            			Log.w(TAG, "Couldn't add listeners for measurements", e);
-	            		}
-    	  }
-
-    	  public void onServiceDisconnected(ComponentName className) {
-    		  Log.w(TAG, "VehicleService disconnected unexpectedly");
-    		  mVehicleManager = null;
-    	  }
-      };
+    	public void onServiceDisconnected(ComponentName className) {
+    		Log.w(TAG, "VehicleService disconnected unexpectedly");
+    		mVehicleManager = null;
+    	}
+    };
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -102,12 +99,22 @@ public class VehicleMonitoringService extends Service {
 	                mConnection, Context.BIND_AUTO_CREATE);
 	}
 
-	
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		Log.w(TAG, "In ondestroy");
 		unbindService(mConnection);
 	}
 	
+	private void sendVehicleUnreversedBroadcast() {
+		Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
+		sendBroadcast(unreversedIntent);
+		Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
+	}
+
+	private void startBackupCameraActivity() {
+		Intent launchIntent = new Intent(VehicleMonitoringService.this, BackupCameraActivity.class);
+		launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		VehicleMonitoringService.this.startActivity(launchIntent);
+		Log.i(TAG, "Activity Launched from Vehicle Monitoring Service");
+	}
 }

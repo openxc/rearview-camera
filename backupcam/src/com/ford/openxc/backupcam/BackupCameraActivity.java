@@ -57,7 +57,7 @@ public class BackupCameraActivity extends Activity {
 	public void startVehicleMonitoringService() {
 		Intent VehicleMonitoringServiceIntent = new Intent(BackupCameraActivity.this, VehicleMonitoringService.class);
     	startService(VehicleMonitoringServiceIntent);	
-     	Log.w(TAG, "Starting Service from BackupCameraActivity");
+     	Log.i(TAG, "Starting Service from BackupCameraActivity");
 	}
 	
 	private void registerUsbDetachedCloseReceiver() {
@@ -83,7 +83,7 @@ public class BackupCameraActivity extends Activity {
 	BroadcastReceiver usbCloseReceiver = new BroadcastReceiver() {
 		@Override
         public void onReceive(Context context, Intent intent) {
-            Log.w("USB ERROR", "Usb device detached");
+            Log.w("USB ERROR", "USB Device Detached");
             usbError();   
         }
     };
