@@ -108,7 +108,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     }
     
 	/**bitmap drawing methods**/
-
 	private void drawVideoFeedBitmap(Canvas canvas) {
 		canvas.drawBitmap(bmpVideoFeed, createVideoFeedMatrix(), null);
 	}
@@ -126,7 +125,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	}
 	
 	/**matrix creation methods**/
-
 	private Matrix createVideoFeedMatrix() {
 		
 		Matrix videoFeedMatrix = new Matrix();
@@ -181,19 +179,17 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	}
 	
 	/**text drawing methods**/
-
 	private void drawWarningTextOutline(Canvas canvas) {
 		canvas.drawText("Please Check Surroundings for Safety", getWarningTextXCoordinate(), 
-				   getWarningTextYCoordinate(), createWarningTextOutlinePaint(createWarningTextPaint()));
+				getWarningTextYCoordinate(), createWarningTextOutlinePaint(createWarningTextPaint()));
 	}
 
 	private void drawWarningText(Canvas canvas) {
 		canvas.drawText("Please Check Surroundings for Safety", getWarningTextXCoordinate(), 
-				   getWarningTextYCoordinate(), createWarningTextPaint());
+				getWarningTextYCoordinate(), createWarningTextPaint());
 	}
 
 	/**paint creation methods**/
-
 	private Paint createWarningTextOutlinePaint(Paint warningTextPaint) {
 		
 		Paint warningTextOutlinePaint = new Paint();
@@ -251,13 +247,13 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		return bendingLinesPaint;
 	}
 	
+	/**steering wheel angle retrieval method**/
 	private float getSteeringWheelAngle() {
 		float steeringWheelValue = (float)VehicleMonitoringService.SteeringWheelAngle;
 		return steeringWheelValue;
 	}
 	
 	/**coordinate retrieval methods**/
-
 	private float getWarningTextYCoordinate() {
 		float warningTextYCoordinate = computeIbookVerticalTranslation() + computeAdjustedIbookHeight();
 		return warningTextYCoordinate;
@@ -268,26 +264,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		return warningTextXCoordinate;
 	}
 
-    private float getOverlayBottomCoordinate() {
-    	float overlayBottomCoordinate = computeAdjustedOverlayHeight() + computeOverlayVerticalTranslation();
-    	return overlayBottomCoordinate;
-	}
- 
-    private float getOverlayTopCoordinate() {
-    	float overlayTopCoordinate = computeOverlayVerticalTranslation();
-    	return overlayTopCoordinate;
-    }
-
-    private float getOverlayRightCoordinate() {
-    	float overlayRightCoordinate = getOverlayLeftCoordinate() + computeAdjustedOverlayWidth();
-    	return overlayRightCoordinate;
-    }
-    
-    private float getOverlayLeftCoordinate() {
-    	float overlayLeftCoordinate = (float)0.5*(getScreenWidth()-computeAdjustedOverlayWidth());
-    	return overlayLeftCoordinate; 
-    }
-    
 	/**ibook translation computation methods**/
 	private float computeIbookVerticalTranslation() {
 		float ibookVerticalTranslation = (float)(0.02*getScreenHeight());
@@ -367,8 +343,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	
 	/**adjusted ibook dimensions computation methods**/
 	private float computeAdjustedIbookHeight() {
-		float screenToIbookHeightRatio = computeScreenToIbookHeightRatio();
-		float adjustedIbookHeight = screenToIbookHeightRatio*bmpIbook.getHeight();
+		float adjustedIbookHeight = computeScreenToIbookHeightRatio()*bmpIbook.getHeight();
 			return adjustedIbookHeight;
 	}
 		
