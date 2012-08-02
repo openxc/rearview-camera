@@ -101,7 +101,7 @@ public class BackupCameraActivity extends Activity {
 	        .setTitle("USB Device Unplugged!")
 	        .setMessage("FordBackupCam is closing. Please reconnect device(s) and relaunch app.")
 	        .setCancelable(false)
-	        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+	        .setNeutralButton("Close", new DialogInterface.OnClickListener() {
 	        	public void onClick(DialogInterface dialog, int id) {
 	        		activityRunning = false;
 	        		android.os.Process.killProcess(android.os.Process.myPid());

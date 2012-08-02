@@ -29,24 +29,29 @@ public class VehicleMonitoringService extends Service {
     public static double SteeringWheelAngle;
 
     
+    
     TransmissionGearPosition.Listener mTransmissionGearPos =
     		new TransmissionGearPosition.Listener() {
     	public void receive(Measurement measurement) {
     		final TransmissionGearPosition status = (TransmissionGearPosition) measurement;
     		mHandler.post(new Runnable() {
     			public void run() {
-    				
+    				Log.w(TAG, ""+status.getValue().enumValue().toString());
     				//only start activity if vehicle put in reverse if activity is not already active
     				if (status.getValue().enumValue() == TransmissionGearPosition.GearPosition.REVERSE
     						&& !BackupCameraActivity.isRunning()){
-    					
-    					startBackupCameraActivity();
+    					Intent launchIntent = new Intent(VehicleMonitoringService.this, BackupCameraActivity.class);
+    					launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    					VehicleMonitoringService.this.startActivity(launchIntent);
+    					Log.i(TAG, "Activity Launched from Vehicle Monitoring Service");
+    					//startBackupCameraActivity();
     				}
     				//only send close intent if vehicle is not in reverse and activity is running
     				else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE
     						&& BackupCameraActivity.isRunning()) {
-    					
-    					sendVehicleUnreversedBroadcast();
+    					Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
+    					sendBroadcast(unreversedIntent);
+    					Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
     				}
     			}
     		});
@@ -105,18 +110,5 @@ public class VehicleMonitoringService extends Service {
 	public void onDestroy() {
 		super.onDestroy();
 		unbindService(mConnection);
-	}
-	
-	private void sendVehicleUnreversedBroadcast() {
-		Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
-		sendBroadcast(unreversedIntent);
-		Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
-	}
-
-	private void startBackupCameraActivity() {
-		Intent launchIntent = new Intent(VehicleMonitoringService.this, BackupCameraActivity.class);
-		launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		VehicleMonitoringService.this.startActivity(launchIntent);
-		Log.i(TAG, "Activity Launched from Vehicle Monitoring Service");
 	}
 }
