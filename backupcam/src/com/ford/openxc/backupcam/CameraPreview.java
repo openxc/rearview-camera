@@ -10,7 +10,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -104,9 +103,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     	   }
      	}
        	else {
-    	   Intent noCameraDetectedIntent = new Intent(NO_CAMERA_DETECTED);
-    	   context.sendBroadcast(noCameraDetectedIntent);
-    	   Log.i(TAG, "No Camera Detected Intent Sent");
+    	  sendNoCameraDetectedBroadcast();
        	}
     }
     
@@ -139,7 +136,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	 		(float)(0.5*getScreenHeight())-(float)(0.5*computeAdjustedVideoFeedHeight()));
 			
 		return videoFeedMatrix;
-		}
+	}
 
 	private Matrix createOverlayMatrix() {
 
@@ -198,6 +195,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	/**paint creation methods**/
 
 	private Paint createWarningTextOutlinePaint(Paint warningTextPaint) {
+		
 		Paint warningTextOutlinePaint = new Paint();
 		
 		warningTextOutlinePaint.setStrokeWidth(4);
@@ -208,6 +206,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	}
 	
 	private Paint createWarningTextPaint() {
+		
 		Paint warningTextPaint = new Paint();
 		
 		warningTextPaint.setColor(Color.WHITE);
@@ -217,6 +216,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	}
 	
 	private Paint createOverlayPaint(){
+		
 		float steeringWheelValue = getSteeringWheelAngle(); 
 		Paint overlayPaint = new Paint();
 		
@@ -234,6 +234,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	}
 
 	private Paint createBendingLinesPaint() {
+		
 		float steeringWheelValue = getSteeringWheelAngle(); 
 		Paint bendingLinesPaint = new Paint();
 		
@@ -351,7 +352,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	private float computeAdjustedVideoFeedWidth() {
 		float adjustedVideoFeedWidth = computeScreenToFeedWidthRatio()*bmpVideoFeed.getWidth();
 			return adjustedVideoFeedWidth;
-		}	
+	}	
 	
 	/**adjusted overlay dimensions computation methods**/
 	private float computeAdjustedOverlayHeight() {
@@ -385,6 +386,13 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	private float getScreenWidth() {
 		float screenWidth = context.getResources().getDisplayMetrics().widthPixels;
 			return screenWidth;
+	}
+	
+	/**send broadcast method**/
+	private void sendNoCameraDetectedBroadcast() {
+		Intent noCameraDetectedIntent = new Intent(NO_CAMERA_DETECTED);
+  	   	context.sendBroadcast(noCameraDetectedIntent);
+  	   	Log.i(TAG, "No Camera Detected Intent Broadcasted");
 	}
 	
 	@Override
