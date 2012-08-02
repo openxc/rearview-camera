@@ -21,5 +21,6 @@ To run this application, the following conditions should be satisfied.
 3) USB WebCam is UVC camera, and it supports 640x480 resolution with YUYV format.
 
 Supported platform : Iconia Tab A500.
+		     Toshiba Thrive
 
  This application will also work on V4L2-enabled pandaboard and beagleboard.

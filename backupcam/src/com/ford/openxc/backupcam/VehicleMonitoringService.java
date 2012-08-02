@@ -21,11 +21,13 @@ import com.openxc.remote.VehicleServiceException;
 public class VehicleMonitoringService extends Service {
 	
 	private final static String TAG = "VehicleMonitoringService";
+    public static final String ACTION_VEHICLE_REVERSED = "com.ford.openxc.VEHICLE_REVERSED";
+    public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
+    
     private final Handler mHandler = new Handler();
     private VehicleManager mVehicleManager;
     public static double SteeringWheelAngle;
-    public static final String ACTION_VEHICLE_REVERSED = "com.ford.openxc.VEHICLE_REVERSED";
-    public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
+
     
     TransmissionGearPosition.Listener mTransmissionGearPos =
     		new TransmissionGearPosition.Listener() {

@@ -282,7 +282,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	}
 	
 	private float computeOverlayVerticalTranslation() {
-		float overlayVerticalTranslation = (float)(0.5*getScreenHeight())-(float)(0.45*computeAdjustedOverlayHeight());
+		float overlayVerticalTranslation = (float)(0.5*getScreenHeight())-(float)(0.3*computeAdjustedOverlayHeight());
 		return overlayVerticalTranslation;
 	}
 	
@@ -299,7 +299,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	
 	/**screen to overlay ratio computation methods**/
 	private float computeScreenToOverlayHeightRatio() {
-		float screenToOverlayHeightRatio = (float)0.65*getScreenHeight()/(float)bmpOverlayLines.getHeight();
+		float screenToOverlayHeightRatio = (float)0.5*getScreenHeight()/(float)bmpOverlayLines.getHeight();
 			return screenToOverlayHeightRatio;
 	}
 	
