@@ -108,41 +108,32 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
        	}
     }
     
-	//bitmap drawing methods
+	/**bitmap drawing methods**/
+    //draw video feed to the canvas
 	private void drawVideoFeedBitmap(Canvas canvas) {
 		Matrix videoFeedMatrix = createVideoFeedMatrix();	
 		canvas.drawBitmap(bmpVideoFeed, videoFeedMatrix, null);
 	}
-	
+	//draw colored guiding lines to the canvas
 	private void drawOverlayLinesBitmap(Canvas canvas) {
 		Paint overlayPaint = createOverlayPaint();
 		Matrix overlayMatrix = createOverlayMatrix();
 		canvas.drawBitmap(bmpOverlayLines, overlayMatrix, overlayPaint);
 	}
-	
+	//draw ibook to canvas
 	private void drawIbookBitmap(Canvas canvas) {
 		Matrix ibookMatrix = createIbookMatrix();
 		canvas.drawBitmap(bmpIbook, ibookMatrix, null);
 	}
-
+	//draw bending lines to canvas
 	private void drawBendingLinesBitmap(Canvas canvas) {
 		Paint bendingLinesPaint = createBendingLinesPaint();
 		Matrix bendingLinesMatrix = createBendingLinesMatrix();
 		canvas.drawBitmap(bmpBendingLines, bendingLinesMatrix, bendingLinesPaint);
 	}
 	
-    //matrix creation methods
-	private Matrix createIbookMatrix() {
-		float screenToIbookHeightRatio = computeScreenToIbookHeightRatio();
-		float screenToIbookWidthRatio = computeScreenToIbookWidthRatio();
-		float ibookHorizontalTranslation = computeIbookHorizontalTranslation();
-		float ibookVerticalTranslation = computeIbookVerticalTranslation();
-		Matrix ibookMatrix = new Matrix();
-		ibookMatrix.preScale(screenToIbookWidthRatio, screenToIbookHeightRatio);
-		ibookMatrix.postTranslate(ibookHorizontalTranslation, ibookVerticalTranslation);
-			return ibookMatrix;
-	}
-	
+    /**matrix creation methods**/
+	//matrix to flip video feed and adjust to fill screen
 	private Matrix createVideoFeedMatrix() {
 		float screenHeight = getScreenHeight();
 		float screenWidth = getScreenWidth();
@@ -153,10 +144,10 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		Matrix videoFeedMatrix = new Matrix();
 		videoFeedMatrix.preScale(-screenToFeedWidthRatio, screenToFeedHeightRatio);
 		videoFeedMatrix.postTranslate((float)(0.5*screenWidth)+(float)(0.5*adjustedVideoFeedWidth),
- 			(float)(0.5*screenHeight)-(float)(0.5*adjustedVideoFeedHeight));
+	 		(float)(0.5*screenHeight)-(float)(0.5*adjustedVideoFeedHeight));
 			return videoFeedMatrix;
-	}
-	
+		}
+	//matrix to scale overlay and center in screen horizontally
 	private Matrix createOverlayMatrix() {
 		float screenToOverlayWidthRatio = computeScreenToOverlayWidthRatio();
 		float screenToOverlayHeightRatio = computeScreenToOverlayHeightRatio();
@@ -168,7 +159,18 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		overlayVerticalTranslation);
 			return overlayMatrix;
 	}
-	
+	//matrix to scale and place ibook in top left corner region
+	private Matrix createIbookMatrix() {
+		float screenToIbookHeightRatio = computeScreenToIbookHeightRatio();
+		float screenToIbookWidthRatio = computeScreenToIbookWidthRatio();
+		float ibookHorizontalTranslation = computeIbookHorizontalTranslation();
+		float ibookVerticalTranslation = computeIbookVerticalTranslation();
+		Matrix ibookMatrix = new Matrix();
+		ibookMatrix.preScale(screenToIbookWidthRatio, screenToIbookHeightRatio);
+		ibookMatrix.postTranslate(ibookHorizontalTranslation, ibookVerticalTranslation);
+			return ibookMatrix;
+	}
+	//matrix to scale and place bending lines (directly on top of guiding lines overlay when steering wheel angle == 0 	
 	private Matrix createBendingLinesMatrix() {
 		float screenToOverlayHeightRatio = computeScreenToOverlayHeightRatio();
 		float screenToOverlayWidthRatio = computeScreenToOverlayWidthRatio();
@@ -187,18 +189,18 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		Matrix bendingLinesMatrix = new Matrix();
 		bendingLinesMatrix.preScale(screenToBendingLinesWidthRatio, screenToBendingLinesHeightRatio);
 		
-		
+		//positive steering wheel angles translate lines to right, negative to the left
 		bendingLinesMatrix.postTranslate(bendingLinesHorizontalTranslation + 3*(float)steeringWheelValue/2, 
 				bendingLinesVerticalTranslation);
 		
 		//number divided by must be larger than the maximum absolute value the steering wheel can produce because the x skew
 		//must be less than 1
 		bendingLinesMatrix.postSkew(-steeringWheelValue/480, 0);
-	
-		return bendingLinesMatrix;
+			return bendingLinesMatrix;
 	}
 	
-	//text drawing methods
+	/**text drawing methods**/
+	//outline white text with black outline to make text legible regardless of what's behind it in the camera feed
 	private void drawWarningTextOutline(Canvas canvas) {
 		Paint warningTextPaint = createWarningTextPaint();
 		Paint warningTextOutlinePaint = createWarningTextOutlinePaint(warningTextPaint);
@@ -207,7 +209,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		canvas.drawText("Please Check Surroundings for Safety", warningTextXCoordinate, 
 				   warningTextYCoordinate, warningTextOutlinePaint);
 	}
-	
+	//draw white warning text
 	private void drawWarningText(Canvas canvas) {
 		Paint warningTextPaint = createWarningTextPaint();
 		float warningTextXCoordinate = getWarningTextXCoordinate();
@@ -216,15 +218,18 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 				   warningTextYCoordinate, warningTextPaint);
 	}
 
-	//paint creation methods
+	/**paint creation methods**/
+	//paint for black outline
 	private Paint createWarningTextOutlinePaint(Paint warningTextPaint) {
 		Paint warningTextOutlinePaint = new Paint();
 		warningTextOutlinePaint.setStrokeWidth(4);
 		warningTextOutlinePaint.setStyle(Paint.Style.STROKE);
+		//get the size of the white text so outline changes automatically if white font size is changed
 		warningTextOutlinePaint.setTextSize(warningTextPaint.getTextSize());
 			return warningTextOutlinePaint;
 	}
 	
+	//paint for warning text
 	private Paint createWarningTextPaint() {
 		Paint warningTextPaint = new Paint();
 		warningTextPaint.setColor(Color.WHITE);
@@ -232,6 +237,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			return warningTextPaint;
 	}
 	
+	//create paint for stationary guiding lines.  alpha value decreases for larger steering wheel angles and is opaque (255) 
+	//at an angle of 0
 	private Paint createOverlayPaint(){
 		float steeringWheelValue = getSteeringWheelAngle(); 
 		Paint overlayPaint = new Paint();
@@ -248,7 +255,9 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			
 		return overlayPaint;
 	}
-	
+	//create paint for dynamic guiding lines.  alpha value increases for larger steering wheel angles and is transparent (0)
+	//at an angle of 0.  maximum alpha value is 255 and maximum absolute steering wheel angle is around 500, and since the alpha 
+	//value is either the positive or the negative of the steering wheel angle, the "else" handles the larger values 
 	private Paint createBendingLinesPaint() {
 		float steeringWheelValue = getSteeringWheelAngle(); 
 		Paint bendingLinesPaint = new Paint();
@@ -264,20 +273,21 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		return bendingLinesPaint;
 	}
 	
-	//get steeringWheelAngle
+	//get steeringWheelAngle from Vehicle Monitoring Service, from Vehicle Manager
 	private float getSteeringWheelAngle() {
 		float steeringWheelValue = (float)VehicleMonitoringService.SteeringWheelAngle;
 			return steeringWheelValue;
 	}
 	
-	//get coordinates methods
+	/**coordinate retrieval methods**/
+
 	private float getWarningTextYCoordinate() {
 		float adjustedIbookHeight = computeAdjustedIbookHeight();
 		float ibookVerticalTranslation = computeIbookVerticalTranslation();
 		float warningTextYCoordinate = ibookVerticalTranslation + adjustedIbookHeight;
 			return warningTextYCoordinate;
 	}
-	
+
 	private float getWarningTextXCoordinate() {
 		float adjustedIbookWidth = computeAdjustedIbookWidth();
 		float ibookHorizontalTranslation = computeIbookHorizontalTranslation();
@@ -291,13 +301,13 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     	float overlayBottomCoordinate = adjustedOverlayHeight + overlayVerticalTranslation;
     	   return overlayBottomCoordinate;
 	}
-    
+ 
     private float getOverlayTopCoordinate() {
     	float overlayVerticalTranslation = computeOverlayVerticalTranslation();
     	float overlayTopCoordinate = overlayVerticalTranslation;
     		return overlayTopCoordinate;
     }
-    
+
     private float getOverlayRightCoordinate() {
     	float overlayLeftCoordinate = getOverlayLeftCoordinate();
     	float adjustedOverlayWidth = computeAdjustedOverlayWidth();
@@ -312,7 +322,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     		return overlayLeftCoordinate; 
     }
     
-	//ibook translation computation methods
+	/**ibook translation computation methods**/
 	private float computeIbookVerticalTranslation() {
 		float screenHeight = getScreenHeight();
 		float ibookVerticalTranslation = (float)(0.02*screenHeight);
@@ -325,7 +335,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			return ibookHorizontalTranslation;
 	}
 	
-	//overlay translation computation methods
+	/**overlay translation computation methods**/
 	private float computeOverlayHorizontalTranslation() {
 		float screenWidth = getScreenWidth();
 		float adjustedOverlayWidth = computeAdjustedOverlayWidth();
@@ -340,7 +350,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		return overlayVerticalTranslation;
 	}
 	
-	//screen to video feed ratio computation methods
+	/**screen to video feed ratio computation methods**/
 	private float computeScreenToFeedHeightRatio() {
 		float screenHeight = getScreenHeight();
 		float screenToFeedHeightRatio = screenHeight/(float)bmpVideoFeed.getHeight();
@@ -353,7 +363,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			return screenToFeedWidthRatio;
 	}
 	
-	//screen to overlay ratio computation methods
+	/**screen to overlay ratio computation methods**/
 	private float computeScreenToOverlayHeightRatio() {
 		float screenHeight = getScreenHeight();
 		float screenToOverlayHeightRatio = (float)0.65*screenHeight/(float)bmpOverlayLines.getHeight();
@@ -366,7 +376,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			return screenToOverlayWidthRatio;
 	}
 	
-	//screen to ibook ratio computation methods
+	/**screen to ibook ratio computation methods**/
 	private float computeScreenToIbookWidthRatio() {
 		float screenWidth = getScreenWidth();
 		float screenToIbookWidthRatio = screenWidth/bmpIbook.getWidth()/20;
@@ -379,7 +389,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			return screenToIbookHeightRatio;
 	}
 
-	//adjusted video feed dimensions computation methods
+	/**adjusted video feed dimensions computation methods**/
 	private float computeAdjustedVideoFeedHeight() {
 		float screenToFeedHeightRatio = computeScreenToFeedHeightRatio();
 		float adjustedVideoFeedHeight = screenToFeedHeightRatio*bmpVideoFeed.getHeight();
@@ -392,7 +402,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			return adjustedVideoFeedWidth;
 		}	
 	
-	//adjusted overlay dimensions computation methods
+	/**adjusted overlay dimensions computation methods**/
 	private float computeAdjustedOverlayHeight() {
 		float screenToOverlayHeightRatio = computeScreenToOverlayHeightRatio();
 		float adjustedOverlayHeight = screenToOverlayHeightRatio*bmpOverlayLines.getHeight();
@@ -404,7 +414,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			return adjustedOverlayWidth;
 	}
 	
-	//adjusted ibook dimensions computation methods
+	/**adjusted ibook dimensions computation methods**/
 	private float computeAdjustedIbookHeight() {
 		float screenToIbookHeightRatio = computeScreenToIbookHeightRatio();
 		float adjustedIbookHeight = screenToIbookHeightRatio*bmpIbook.getHeight();
@@ -417,7 +427,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 			return adjustedIbookWidth;
 		}
 		
-	//get screen dimensions methods
+	/**get screen dimensions methods**/
 	private float getScreenHeight() {
 		DisplayMetrics metrics = context.getResources().getDisplayMetrics();
 		float screenHeight= metrics.heightPixels;
