@@ -68,7 +68,6 @@ public class BackupCameraActivity extends Activity {
 	}
 
 	private void registerVehicleUnreversedCloseReceiver() {
-		//create intent filter to listen for unreversing of vehicle to close activity
 		IntentFilter closeFilter = new IntentFilter();
 		closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
 		registerReceiver(vehicleUnreversedCloseReceiver, closeFilter);
