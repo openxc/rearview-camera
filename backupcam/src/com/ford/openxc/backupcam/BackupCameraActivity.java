@@ -1,5 +1,7 @@
 package com.ford.openxc.backupcam;
 
+/**Main Activity**/
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -25,79 +27,61 @@ public class BackupCameraActivity extends Activity {
 		activityRunning = true;
 		cp = new CameraPreview(this);
 		setContentView(cp);
-		
-		//start monitoring service
-    	
 		startVehicleMonitoringService();
-		
-		//register for receivers
-     	registerCloseReceiver();
-		registerMUsbReceiver();
-		
+		registerVehicleUnreversedCloseReceiver();
+		registerUsbDetachedCloseReceiver();
 	}
 	
 	@Override
 	public void onPause() {
 		super.onPause();
 		activityRunning = false;
-		Log.w(TAG, "in onPause");	
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
 		activityRunning = true;
-		registerCloseReceiver();
-		registerMUsbReceiver();
-		Log.w(TAG, "in onResume");	
-
+		registerVehicleUnreversedCloseReceiver();
+		registerUsbDetachedCloseReceiver();
 	}
 	
 	@Override
 	public void onDestroy(){
 		super.onDestroy();
-		Log.w(TAG, "in ondestroy");
-
 		activityRunning = false;
-		unregisterReceiver(mUsbReceiver);
-		unregisterReceiver(closeReceiver);
+		unregisterReceiver(usbCloseReceiver);
+		unregisterReceiver(vehicleUnreversedCloseReceiver);
 	}
 	
 	public void startVehicleMonitoringService() {
-		
 		Intent VehicleMonitoringServiceIntent = new Intent(BackupCameraActivity.this, VehicleMonitoringService.class);
     	startService(VehicleMonitoringServiceIntent);	
      	Log.w(TAG, "Starting Service from BackupCameraActivity");
-		
 	}
 	
-	private void registerMUsbReceiver() {
-		//create intent filter to listen for detachment of usb in order to close activity
-		IntentFilter usbfilter = new IntentFilter();
-        usbfilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        usbfilter.addAction("com.ford.openxc.NO_CAMERA_DETECTED");
-        registerReceiver(mUsbReceiver, usbfilter);
-		
+	private void registerUsbDetachedCloseReceiver() {
+		IntentFilter usbFilter = new IntentFilter();
+		usbFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+		usbFilter.addAction("com.ford.openxc.NO_CAMERA_DETECTED");
+        registerReceiver(usbCloseReceiver, usbFilter);
 	}
 
-	private void registerCloseReceiver() {
+	private void registerVehicleUnreversedCloseReceiver() {
 		//create intent filter to listen for unreversing of vehicle to close activity
 		IntentFilter closeFilter = new IntentFilter();
 		closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
-		registerReceiver(closeReceiver, closeFilter);
-		
+		registerReceiver(vehicleUnreversedCloseReceiver, closeFilter);
 	}
 
-	BroadcastReceiver closeReceiver = new BroadcastReceiver() {
-		
+	BroadcastReceiver vehicleUnreversedCloseReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			finish();
 		}
 	};
 	
-	BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-        
+	BroadcastReceiver usbCloseReceiver = new BroadcastReceiver() {
 		@Override
         public void onReceive(Context context, Intent intent) {
             Log.w("USB ERROR", "Usb device detached");
@@ -108,18 +92,15 @@ public class BackupCameraActivity extends Activity {
 	public void finish() {
 		super.finish();
 		activityRunning = false;
-		Log.w(TAG, "in finish");
 	}
 	 
 	public void usbError(){
-		
 		if (activityRunning == true) {
 	        Vibrator vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 	        vibrator.vibrate(2000);
-
 	        new AlertDialog.Builder(this)
 	        .setTitle("USB Device Unplugged!")
-	        .setMessage("FordBackupCam is closing. Please reconnect device(s) and reopen from main menu.")
+	        .setMessage("FordBackupCam is closing. Please reconnect device(s) and relaunch app.")
 	        .setCancelable(false)
 	        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
 	        	public void onClick(DialogInterface dialog, int id) {
@@ -129,17 +110,11 @@ public class BackupCameraActivity extends Activity {
 	        }).show();
 		}
 		else if (activityRunning == false) {
-
 	        android.os.Process.killProcess(android.os.Process.myPid());
 		}
-
 	}
 
 	public static boolean isRunning() {
 		return activityRunning;
 	}
 }
-
-	 
-	
-
