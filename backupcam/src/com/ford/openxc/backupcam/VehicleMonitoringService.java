@@ -28,8 +28,6 @@ public class VehicleMonitoringService extends Service {
     private VehicleManager mVehicleManager;
     public static double SteeringWheelAngle;
 
-    
-    
     TransmissionGearPosition.Listener mTransmissionGearPos =
     		new TransmissionGearPosition.Listener() {
     	public void receive(Measurement measurement) {
@@ -37,18 +35,17 @@ public class VehicleMonitoringService extends Service {
     		mHandler.post(new Runnable() {
     			public void run() {
     				Log.w(TAG, ""+status.getValue().enumValue().toString());
-    				//only start activity if vehicle put in reverse if activity is not already active
+
     				if (status.getValue().enumValue() == TransmissionGearPosition.GearPosition.REVERSE
     						&& !BackupCameraActivity.isRunning()){
     					
     					startBackupCameraActivity();
     				}
-    				//only send close intent if vehicle is not in reverse and activity is running
+
     				else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE
     						&& BackupCameraActivity.isRunning()) {
     					
     					sendVehicleUnreversedBroadcast();
-    			
     				}
     			}
     			
@@ -58,6 +55,7 @@ public class VehicleMonitoringService extends Service {
 					VehicleMonitoringService.this.startActivity(launchIntent);
 					Log.i(TAG, "Activity Launched from Vehicle Monitoring Service");
 				}
+    			
 				private void sendVehicleUnreversedBroadcast() {
 					
 					Intent unreversedIntent = new Intent(ACTION_VEHICLE_UNREVERSED);
