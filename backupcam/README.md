@@ -87,6 +87,9 @@ Relaunching FordBackupCam:
     a worse approximation to the potential path of the vehicle.  In addition, the app would not be able to continue responding to the
     status of the transmission, and thus the app would not close/launch as intended.  The user might think the tablet or application 
     has frozen, when in fact a cable was simply unplugged.  
+    
+    --Currently, the app must be relaunched manually the first time after a disconnect in order to restart the 
+    VehicleMonitoringService (see below).
 
 
 
