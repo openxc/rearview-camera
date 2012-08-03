@@ -41,7 +41,6 @@ public class VehicleMonitoringService extends Service {
     					
     					startBackupCameraActivity();
     				}
-
     				else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE
     						&& BackupCameraActivity.isRunning()) {
     					
