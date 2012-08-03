@@ -1,6 +1,6 @@
 package com.ford.openxc.backupcam;
 
-/**Creates view to be displayed with camera preview as background feed**/
+/**Creates view to be displayed with camera feed as background**/
 
 import android.content.Context;
 import android.content.Intent;
@@ -18,7 +18,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 
     public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
     public static final String NO_CAMERA_DETECTED = "com.ford.openxc.NO_CAMERA_DETECTED";
-
+	private static final String TAG = "CameraPreview";
+	
 	private static final boolean DEBUG = true;
 	protected Context context;
 	private SurfaceHolder holder;
@@ -28,8 +29,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 	private Bitmap bmpIbook=null;
 	private Bitmap bmpWarningText=null;
 	private Bitmap bmpDynamicLines=null;
-	
-	private static final String TAG = "CameraPreview";
 
 	private boolean cameraExists=false;
 	private boolean shouldStop=false;
@@ -92,8 +91,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     			   drawWarningTextOutline(canvas);
     			   drawWarningText(canvas);
     			   
-    			   //unlock canvas
-    			   getHolder().unlockCanvasAndPost(canvas); 
+      			   getHolder().unlockCanvasAndPost(canvas); 
     		   }
 
     		   if(shouldStop){
@@ -216,10 +214,13 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 		float steeringWheelValue = getSteeringWheelAngle(); 
 		Paint overlayPaint = new Paint();
 		
-		if (steeringWheelValue/2 >= 0 && steeringWheelValue/2 <=255) {
+		if (steeringWheelValue == 0) {
+			overlayPaint.setAlpha(255);
+		}
+		else if (steeringWheelValue/2 > 0 && steeringWheelValue/2 <=255) {
 			overlayPaint.setAlpha(255-(int)steeringWheelValue/2);
 		}
-		else if (steeringWheelValue/2 < 0 && steeringWheelValue/2 > -255) {
+		else if (steeringWheelValue/2 < 0 && steeringWheelValue/2 >= -255) {
 			overlayPaint.setAlpha(255+(int)steeringWheelValue/2);
 		}
 		else {
