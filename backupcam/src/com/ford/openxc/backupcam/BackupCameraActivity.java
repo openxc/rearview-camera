@@ -22,6 +22,19 @@ public class BackupCameraActivity extends Activity {
 	private static boolean activityRunning=false;
 	CameraPreview cp;
 
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		activityRunning = true;
+		cp = new CameraPreview(this);
+		setContentView(cp);
+		startVehicleMonitoringService();
+		registerVehicleUnreversedCloseReceiver();
+		registerUsbDetachedCloseReceiver();
+	}
+	
+	
 	BroadcastReceiver vehicleUnreversedCloseReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -37,18 +50,6 @@ public class BackupCameraActivity extends Activity {
         }
     };
     
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		
-		activityRunning = true;
-		cp = new CameraPreview(this);
-		setContentView(cp);
-		startVehicleMonitoringService();
-		registerVehicleUnreversedCloseReceiver();
-		registerUsbDetachedCloseReceiver();
-	}
-	
 	@Override
 	public void onPause() {
 		super.onPause();

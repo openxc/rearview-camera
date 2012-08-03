@@ -34,8 +34,7 @@ public class VehicleMonitoringService extends Service {
     		final TransmissionGearPosition status = (TransmissionGearPosition) measurement;
     		mHandler.post(new Runnable() {
     			public void run() {
-    				Log.w(TAG, ""+status.getValue().enumValue().toString());
-
+    				
     				if (status.getValue().enumValue() == TransmissionGearPosition.GearPosition.REVERSE
     						&& !BackupCameraActivity.isRunning()){
     					

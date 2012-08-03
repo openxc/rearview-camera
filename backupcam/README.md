@@ -42,7 +42,7 @@ Installation instructions:
   7)  Insert USB extension cable into splitter
   8)  Connect CAN Translator to OBD-II port (if not already done)  
   9)  Connect a separate USB cable, one end to the CAN Translator (more detailed instructions at openxcplatform.com), one end 
-	into the splitter (full sized end should be in the splitter)
+	into the splitter (full sized end should be in the splitter, micro end in the translator)
   10) Insert splitter into android device.
 
 FordBackupCam is now ready to be used.  
@@ -90,6 +90,9 @@ Relaunching FordBackupCam:
     
     --Currently, the app must be relaunched manually the first time after a disconnect in order to restart the 
     VehicleMonitoringService (see below).
+
+    --It is recommended that you check the enabler or VehicleDashboard in order to ensure that messages are flowing from
+	the CAN Translator.  
 
 
 
