@@ -1,6 +1,8 @@
 package com.ford.openxc.backupcam;
 
-/**Main Activity**/
+/**
+ *Main Activity
+**/
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -20,6 +22,21 @@ public class BackupCameraActivity extends Activity {
 	private static boolean activityRunning=false;
 	CameraPreview cp;
 
+	BroadcastReceiver vehicleUnreversedCloseReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			finish();
+		}
+	};
+	
+	BroadcastReceiver usbCloseReceiver = new BroadcastReceiver() {
+		@Override
+        public void onReceive(Context context, Intent intent) {
+            Log.w("USB ERROR", "USB Device Detached");
+            usbError();   
+        }
+    };
+    
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -72,21 +89,6 @@ public class BackupCameraActivity extends Activity {
 		closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
 		registerReceiver(vehicleUnreversedCloseReceiver, closeFilter);
 	}
-
-	BroadcastReceiver vehicleUnreversedCloseReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			finish();
-		}
-	};
-	
-	BroadcastReceiver usbCloseReceiver = new BroadcastReceiver() {
-		@Override
-        public void onReceive(Context context, Intent intent) {
-            Log.w("USB ERROR", "USB Device Detached");
-            usbError();   
-        }
-    };
 	
 	public void finish() {
 		super.finish();
@@ -94,7 +96,7 @@ public class BackupCameraActivity extends Activity {
 	}
 	 
 	public void usbError(){
-		if (activityRunning == true) {
+		if (isRunning() == true) {
 	        Vibrator vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 	        vibrator.vibrate(2000);
 	        new AlertDialog.Builder(this)
@@ -108,7 +110,7 @@ public class BackupCameraActivity extends Activity {
 	            }
 	        }).show();
 		}
-		else if (activityRunning == false) {
+		else if (isRunning() == false) {
 	        android.os.Process.killProcess(android.os.Process.myPid());
 		}
 	}
