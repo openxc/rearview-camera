@@ -25,12 +25,12 @@ tablet should never be mounted in such a way that safety is sacrificed.
 2. CAN Translator, OpenXC Platform
 3. USB Webcam
 4. Ford Vehicle (list of supported vehicles can be found at openxcplatform.com)
-5. USB splitter
+5. USB hub
 
 FordBackupCam requires a connection via USB from the Android device to a CAN
 Translator (instructions on how to install a CAN Translator in a vehicle can be
 found at openxcplatform.com). As both the webcam and the translator require a
-full-sized USB connection, a USB splitter is required to connect both the CAN
+full-sized USB connection, a USB hub is required to connect both the CAN
 Translator and the USB webcam to the Android device.
 
 ## Installation instructions
@@ -42,12 +42,12 @@ Translator and the USB webcam to the Android device.
 4. Mount android device in vehicle
 5. Mount USB webcam on rear of vehicle
 6. Attach USB extension cable to camera and run it up to the front of the vehicle inside.
-7. Insert USB extension cable into splitter
+7. Insert USB extension cable into hub
 8. Connect CAN Translator to OBD-II port (if not already done)
 9. Connect a separate USB cable, one end to the CAN Translator (more detailed
-   instructions at openxcplatform.com), one end into the splitter (full sized
-   end should be in the splitter, micro end in the translator)
-10. Insert splitter into android device.
+   instructions at openxcplatform.com), one end into the hub (full sized
+   end should be in the hub, micro end in the translator)
+10. Insert hub into android device.
 
 FordBackupCam is now ready to be used.
 
