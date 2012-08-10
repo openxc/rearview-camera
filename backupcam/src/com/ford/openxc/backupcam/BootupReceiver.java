@@ -1,13 +1,13 @@
-package com.camera.simplewebcam;
+package com.ford.openxc.backupcam;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
 /**
- * Receive the BOOT_COMPLETED signal and start the VehicleManager/MonitoringService.
+ * Receive the BOOT_COMPLETED signal and start the VehicleMonitoringService.
+**/
 
- */
 public class BootupReceiver extends BroadcastReceiver {
     private final static String TAG = "CameraBootupReceiver";
 
@@ -16,7 +16,7 @@ public class BootupReceiver extends BroadcastReceiver {
        
        	Intent MonitoringServiceIntent = new Intent(context, VehicleMonitoringService.class);
     	context.startService(MonitoringServiceIntent);	
-     	Log.w(TAG, "Starting Service from BootupReceiver");
+     	Log.i(TAG, "Starting VehicleMonitoringService from BootupReceiver");
     }
 }
 

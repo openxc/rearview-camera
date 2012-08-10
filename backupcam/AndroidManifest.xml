@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.camera.simplewebcam"
+      package="com.ford.openxc.backupcam"
       android:label="@string/app_name"
       android:versionCode="1"
       android:versionName="1.0">
     <application android:icon="@drawable/backupcamicon2">
-        <activity android:name="com.camera.simplewebcam.BackupCameraActivity" 
+        <activity android:name="com.ford.openxc.backupcam.BackupCameraActivity" 
             	android:label="@string/app_name"
             	android:screenOrientation="sensorLandscape">
 			<intent-filter>
@@ -21,13 +21,14 @@
         </activity>
         <service android:name="com.openxc.VehicleManager"/>
         <service android:name=".VehicleMonitoringService"/>
-        <receiver android:name="BootupReceiver">
+        <receiver android:name="com.ford.openxc.backupcam.BootupReceiver">
         	<intent-filter>
               <action android:name="android.intent.action.BOOT_COMPLETED"/>
               <service android:name="com.openxc.VehicleManager"/>
             </intent-filter>
         </receiver>
 	</application>
+	<!-- TODO  move this above application if all else works-->
     <uses-sdk android:targetSdkVersion="12" android:minSdkVersion="8"></uses-sdk>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WAKE_LOCK"/>

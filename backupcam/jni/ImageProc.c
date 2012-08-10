@@ -404,7 +404,7 @@ void yuyv422toABGRY(unsigned char *src)
 
 
 void 
-Java_com_camera_simplewebcam_CameraPreview_pixeltobmp( JNIEnv* env,jobject thiz,jobject bitmap){
+Java_com_ford_openxc_backupcam_CameraPreview_pixeltobmp( JNIEnv* env,jobject thiz,jobject bitmap){
 
 	jboolean bo;
 
@@ -450,7 +450,7 @@ Java_com_camera_simplewebcam_CameraPreview_pixeltobmp( JNIEnv* env,jobject thiz,
 }
 
 jint 
-Java_com_camera_simplewebcam_CameraPreview_prepareCamera( JNIEnv* env,jobject thiz, jint videoid){
+Java_com_ford_openxc_backupcam_CameraPreview_prepareCamera( JNIEnv* env,jobject thiz, jint videoid){
 
 	int ret;
 
@@ -485,25 +485,25 @@ Java_com_camera_simplewebcam_CameraPreview_prepareCamera( JNIEnv* env,jobject th
 
 
 jint 
-Java_com_camera_simplewebcam_CameraPreview_prepareCameraWithBase( JNIEnv* env,jobject thiz, jint videoid, jint videobase){
+Java_com_ford_openxc_backupcam_CameraPreview_prepareCameraWithBase( JNIEnv* env,jobject thiz, jint videoid, jint videobase){
 	
 		int ret;
 
 		camerabase = videobase;
 	
-		return Java_com_camera_simplewebcam_CameraPreview_prepareCamera(env,thiz,videoid);
+		return Java_com_ford_openxc_backupcam_CameraPreview_prepareCamera(env,thiz,videoid);
 	
 }
 
 void 
-Java_com_camera_simplewebcam_CameraPreview_processCamera( JNIEnv* env,
+Java_com_ford_openxc_backupcam_CameraPreview_processCamera( JNIEnv* env,
 										jobject thiz){
 
 	readframeonce();
 }
 
 void 
-Java_com_camera_simplewebcam_CameraPreview_stopCamera(JNIEnv* env,jobject thiz){
+Java_com_ford_openxc_backupcam_CameraPreview_stopCamera(JNIEnv* env,jobject thiz){
 
 	stopcapturing ();
 
