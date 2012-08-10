@@ -16,7 +16,7 @@ the built in camera systems i.e. an aftermarket option.
 FordBackupCam is intended to be used on a device that has a fixed location,
 preferably permanently, in the vehicle. For example, mounted on the dash.
 Disclaimer: Never mount anything on the dash such that the view of the driver is
-impeeded. As this application serves to increase the level of safety, the
+impeded. As this application serves to increase the level of safety, the
 tablet should never be mounted in such a way that safety is sacrificed.
 
 ## Hardware Needed
@@ -204,7 +204,7 @@ device, initializing the device, stopping the device, etc.
 
 NOTE:  If changes are made to these files, the project must be rebuilt:
 simply reinstalling the application on an Android device does not implement
-these changes. This is easiest done with installling the NDK
+these changes. This is easiest done with installing the NDK
 (http://developer.android.com/tools/sdk/ndk/index.html)
 
 ## Dependencies
