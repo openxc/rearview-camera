@@ -57,14 +57,12 @@ Through the use of the CAN Translator, FordBackupCam continually reads real-time
 vehicle data. The app monitors two pieces of data: the gear position of the
 transmission and the angle of the steering wheel.
 
-By monitoring the gear position data, the application can respond in such a way
-that mimics the Ford built in backup camera. If the tablet has been restarted or
-launched manually (we recommend the restart), the app will respond to the
-vehicle being put in reverse. When the vehicle is put in reverse, the
-application will launch and show the video feed from the attached USB camera. If
-installed correctly, the user will see what is behind the vehicle. In order to
-make use of the camera simpler and require less active thought from the user,
-the application mirrors the camera feed such that an object on the right side
+If the tablet has been restarted or launched manually (we recommend the restart),
+the app will respond to the vehicle being put in reverse. When the vehicle is put 
+in reverse, the application will launch and show the video feed from the attached 
+USB camera. If installed correctly, the user will see what is behind the vehicle. 
+In order to make use of the camera simpler and require less active thought from the 
+user, the application mirrors the camera feed such that an object on the right side
 behind the vehicle will appear on the right side of the tablets screen, despite
 the fact that the rear-facing camera "sees" that the object is on its left.
 
@@ -72,8 +70,7 @@ When the vehicle is taken out of reverse, the application will automatically
 close, returning the tablet to its previous screen before FordBackupCam was
 launched.
 
-By monitoring the angle of the steering wheel, the application can again mimic
-the Ford built in backup camera. When the driver turns the steering wheel, the
+When the driver turns the steering wheel, the
 car will obviously not continue along the straight, guiding lines that appear
 over top of the video feed. Instead, the vehicle will curve to the side. When
 the vehicle turns the wheel to the left, the vehicle will turn backwards and to
