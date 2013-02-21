@@ -21,81 +21,69 @@ view is impeded. While the rearview camera application may help increase
 visibility, the OpenXC platform does not make any claims of a safety benefit.
 This application is inteded as a proof-of-concept.
 
-## Hardware Needed
+## Dependencies
 
-1. Android Device (3.2 or later)
-1. [USB Webcam][]
-1. OpenXC Vehicle Interface with vehicle-specific firmware
-1. OpenXC-supported vehicle (full list of [supported
-   vehicles](/vehicle-interface/index.html))
-1. USB hub
+**Hardware**
 
-The app requires a connection from the Android device to a Vehicle Interface
-(installation instructions [here](/vehicle-interface/index.html)). As both the
-webcam and the VI require a full-sized USB connection, a USB hub is required to
-connect both the CAN Translator and the USB webcam to the Android device.
-However, the VI can be connected via bluetooth in which case you don't need a
-USB hub as only 1 USB device will be plugged in.
+* OpenXC-compatible [Android
+   Device](http://openxcplatform.com/android/index.html) (3.2 or later) that
+   can [access UVC video devices](#android-usb-webcam).
+* [USB Webcam][] supporting UVC and a 640x480 resolution in the YUYV format.
+* [OpenXC Vehicle
+   Interface](https://openxcplatform.com/vehicle-interface/index.html) with
+   vehicle-specific firmware
+* [OpenXC-supported
+   vehicle](http://openxcplatform.com/vehicle-interface/output-format.html)
+* USB hub (if you will be using the VI over USB in addition to the camera)
+
+**Software**
+
+* [OpenXC Android
+  Library](http://openxcplatform.com/getting-started/library-installation.html)
+* [Android SDK](http://developer.android.com/sdk/index.html)
+* [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html)
+
+[USB webcam]: http://www.logitech.com/en-us/product/webcam-C110?crid=34
 
 ## Installation instructions
 
-1. Install OpenXC Enabler application on android device
-1. Run `ndk-build` to compile the native camera library.
-1. Install the RearviewCamera application on the device
-1. Restart tablet (optionally, manually launch application after completing
-   steps 4-10. This must only be done once after installation
-1. Mount android device in vehicle
-1. Mount USB webcam on rear of vehicle
-1. Attach USB extension cable to camera and run it up to the front of the
-   vehicle inside.
-1. Insert USB extension cable into hub
-1. Connect CAN Translator to OBD-II port (if not already done)
-1. Connect a separate USB cable, one end to the CAN Translator (more detailed
-   instructions at openxcplatform.com), one end into the hub (full sized
-   end should be in the hub, micro end in the translator)
-1. Insert hub into android device.
+1. Install the [OpenXC
+   Enabler](http://openxcplatform.com/getting-started/library-installation.html#enabler) to the device.
+1. Run `ndk-build` in the `rearview-camera` project folder to compile the native
+   camera library.
+1. Install the `RearviewCamera` application to the device.
+1. Start the app once, then restart device to make sure the `RearviewCamera`
+   service is properly registered to begin at bootup and start moniotirng the
+   gear position.
+1. Mount the Android device where it will be secure and visible to the driver
+   when backing up, but not in the way of normal driving.
+1. Mount the USB webcam on the rear of the vehicle, possible attached to the
+   trunk lid or license plate holder. This make take some creativity.
+1. Run a USB extension cable from the webcam, through the trunk and up to the
+   tablet.
+1. Assuming the VI is attached to the OBD-II port, connect the tablet to it via
+   USB or Bluetooth.
 
 You're now ready to test.
 
 ## Functionality
 
-The app continuously reads real-time vehicle data from the VI, specifically:
+The app continuously reads vehicle data from the VI and watches for changes in
+`transmission_gear_position` and the `steering_wheel_angle`.
 
-* `transmission_gear_position`
-* `steering_wheel_angle`
+When the gear position changes to `reverse`, the RearviewCamera app will launch
+a video display from the camera. The display includes guide lines indicating
+relative distance from objects in the video and steering wheel guide lines. Note
+that the video feed is mirrored to mimic the view in the rear view mirror.
 
-### Gear Position Input
+The guide lines animate in response to changes in the steering wheel angle. They
+illustrate a rough estimate of the path of the vehicle if you continue to move
+with the current steering wheel angle. The ratio of brightness between the guide
+lines and distance measures shift as you turn the wheel more, drawing your
+attention to the more extreme measurements.
 
-Once initially launched and then minimized, the app will automatically respond
-when the vehicle is put into `reverse`. Once the vehicle is in `reverse` the
-application will launch and show the video feed from the attached USB camera. If
-installed correctly, the user will see what is behind the vehicle. In order to
-simplify the user-experience, the application mirrors the camera feed such that
-an object on the right side behind the vehicle will appear on the right side of
-the tablets screen, just like a rear-view mirror. Color coded guidelines are
-overlaid on top of the video feed to provide a distance reference for the
-driver.
-
-When the vehicle is taken out of reverse, the application will automatically
-close, returning the tablet to its previous screen before RearviewCamera was
-launched.
-
-### Steering Wheel Angle Input
-
-When the driver turns the steering wheel, the car will obviously not continue
-along the straight guiding-lines overlaid on the video feed. When the driver
-backs up with the wheel turned left, the vehicle will turn backwards and to the
-left accordingly so new guiding lines will appear on the screen in order to
-APPROXIMATE the path of the vehicle. The greater the angle of the steering
-wheel, the more the vehicle will turn, and thus the new guiding lines will shift
-and angle themselves more. This also works (mirrored, of course) if the wheel is
-turned to the right.
-
-The user's attention should be drawn to the dynamic guiding lines more as the
-magnitude of the angle of the steering wheel increases, so the straight guiding
-lines fade away while the dynamic lines become brighter and more opaque. The
-opposite is true as the magnitude of the angle of the steering wheel increases.
-The dynamic lines vanish when the vehicles steering wheel is straight.
+When you shift out of `reverse` into `drive` or any other gear, the camera feed
+will shut off.
 
 ## Relaunching the Application
 
@@ -119,16 +107,9 @@ disconnect in order to restart the VehicleMonitoringService (see below).
 It is recommended that you check the enabler or VehicleDashboard in order
 to ensure that messages are flowing from the CAN Translator.
 
-## Requirements
+<h2><a name="android-usb-webcam">Android Support for USB Webcams</a></h2>
 
-* CameraPreview, native implementaiton of a web cam interface using UVC.
-* Android SDK
-* Android NDK
-* OpenXC Enabler application must also be installed on device.
-* USB WebCam is UVC camera, and it supports 640x480 resolution with YUYV
-format.
-
-* The kernel is V4L2 enabled, e.g.,
+To use a USB webcam in Android, the kernel must be compiled with `V4L2`, e.g.:
 
     CONFIG_VIDEO_DEV=y
     CONFIG_VIDEO_V4L2_COMMON=y
@@ -137,10 +118,17 @@ format.
     CONFIG_V4L_USB_DRIVERS=y
     CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV=y
 
-* The permission of /dev/video0 is set 0666 in /ueventd.xxxx.rc
+If the file `/dev/video0` appears on the device when you plug in a video camera,
+then you've got `V4L2` support. The Toshiba Thrive 10.1" and Google Nexus 7 have
+been confirmed to have the module.
 
-Guaranteed supported platform : Toshiba Thrive running Android 3.2
+If you have `/dev/video0`, then only other requirement is that the permissions
+of the file are `0666`. This is the troublesome point for many Android devices -
+by default the device will be inaccessible to applications.
 
-This application will also work on V4L2-enabled pandaboard and beagleboard.
-
-[USB webcam]: http://www.logitech.com/en-us/product/webcam-C110?crid=34
+If the file is not readable to other users, you need to root your device. Once
+rooted, you can `su` and change the permissions manually with `chmod`. Each time
+you attach and detach the camera, however, the device will go back to the
+default restrictive permissions. If you want to permanently change the
+permissions of the `/dev/video0` file, you'll need to spin a custom Android
+image with the new permissions in a /ueventd.xxxx.rc file.
