@@ -2,4 +2,8 @@ obj
 assets
 bin
 gen
-*.class
+target
+.project
+.classpath
+.DS_Store
+.settings
