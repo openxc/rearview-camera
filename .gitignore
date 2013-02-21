@@ -2,6 +2,7 @@ obj
 assets
 bin
 gen
+libs
 target
 .project
 .classpath
