@@ -5,86 +5,99 @@ This document assumes the user has access to a CAN Translator.
 
 ## Purpose
 
-This application seeks to mimic the functionality of the built in Ford backup
-camera systems. The built in systems serve as an aid to the driver by allowing
-him/her to see any obstacles that may be behind the vehicle in order to
-circumvent a collisional incident. This application provides an alternative to
-the built in camera systems i.e. an aftermarket option.
+This application, FordBackupCam, seeks to mimic the functionality of the built
+in Ford backup camera systems. The built-in systems serve as an aid to the
+driver by allowing him/her to see any obstacles that may be behind the vehicle
+in order to avoid a collision. This application provides an alternative to the
+built in camera systems by combining and OpenXC enabled Android app with a [USB
+webcam][].
 
-## Safety
+**Safety Note:** FordBackupCam is intended to be used with a display device that
+has a fixed location, preferably permanently, in the vehicle. For example,
+mounted on the dash. Disclaimer: Never mount anything on the dash such that the
+driver's view is impeded. As this application serves to increase the level of
+safety, the tablet should never be mounted in such a way that safety is
+sacrificed.
 
-FordBackupCam is intended to be used on a device that has a fixed location,
-preferably permanently, in the vehicle. For example, mounted on the dash.
-Disclaimer: Never mount anything on the dash such that the view of the driver is
-impeded. As this application serves to increase the level of safety, the
-tablet should never be mounted in such a way that safety is sacrificed.
+![Backup Camera Screenshot](/images/screenshots/backup_cam_1.png)
 
 ## Hardware Needed
 
 1. Android Device (3.2 or later)
-2. CAN Translator, OpenXC Platform
-3. USB Webcam
-4. Ford Vehicle (list of supported vehicles can be found at openxcplatform.com)
-5. USB hub
+1. [USB Webcam][]
+1. OpenXC Vehicle Interface with vehicle-specific firmware
+1. OpenXC-supported vehicle (full list of [supported
+   vehicles](/vehicle-interface/index.html))
+1. USB hub
 
-FordBackupCam requires a connection via USB from the Android device to a CAN
-Translator (instructions on how to install a CAN Translator in a vehicle can be
-found at openxcplatform.com). As both the webcam and the translator require a
-full-sized USB connection, a USB hub is required to connect both the CAN
-Translator and the USB webcam to the Android device.
+FordBackupCam requires a connection from the Android device to a Vehicle
+Interface (installation instructions [here](/vehicle-interface/index.html)). As
+both the webcam and the VI require a full-sized USB connection, a
+USB hub is required to connect both the CAN Translator and the USB webcam to the
+Android device. However, the VI can be connected via bluetooth in
+which case you don't need a USB hub as only 1 USB device will be plugged in.
 
 ## Installation instructions
 
 1. Install OpenXC Enabler application on android device
-2. Install FordBackupCam application on same device
-3. Restart tablet (optionally, manually launch application after completing
+1. Install FordBackupCam application on same device
+1. Restart tablet (optionally, manually launch application after completing
    steps 4-10. This must only be done once after installation
-4. Mount android device in vehicle
-5. Mount USB webcam on rear of vehicle
-6. Attach USB extension cable to camera and run it up to the front of the vehicle inside.
-7. Insert USB extension cable into hub
-8. Connect CAN Translator to OBD-II port (if not already done)
-9. Connect a separate USB cable, one end to the CAN Translator (more detailed
+1. Mount android device in vehicle
+1. Mount USB webcam on rear of vehicle
+1. Attach USB extension cable to camera and run it up to the front of the vehicle inside.
+1. Insert USB extension cable into hub
+1. Connect CAN Translator to OBD-II port (if not already done)
+1. Connect a separate USB cable, one end to the CAN Translator (more detailed
    instructions at openxcplatform.com), one end into the hub (full sized
    end should be in the hub, micro end in the translator)
-10. Insert hub into android device.
+1. Insert hub into android device.
 
 FordBackupCam is now ready to be used.
 
-## Functionality/use
+![Backup Camera Installed on Focus](/images/screenshots/backup_cam.jpg)
 
-Through the use of the CAN Translator, FordBackupCam continually reads real-time
-vehicle data. The app monitors two pieces of data: the gear position of the
-transmission and the angle of the steering wheel.
+## Functionality
 
-If the tablet has been restarted or launched manually (we recommend the restart),
-the app will respond to the vehicle being put in reverse. When the vehicle is put 
-in reverse, the application will launch and show the video feed from the attached 
-USB camera. If installed correctly, the user will see what is behind the vehicle. 
-In order to make use of the camera simpler and require less active thought from the 
-user, the application mirrors the camera feed such that an object on the right side
-behind the vehicle will appear on the right side of the tablets screen, despite
-the fact that the rear-facing camera "sees" that the object is on its left.
+The app continuously reads real-time vehicle data from the VI, specifically:
+
+* `transmission_gear_position`
+* `steering_wheel_angle`
+
+### Gear Position Input
+
+Once initially launched and then minimized, the app will automatically respond
+when the vehicle is put into `reverse`. Once the vehicle is in `reverse` the
+application will launch and show the video feed from the attached USB camera. If
+installed correctly, the user will see what is behind the vehicle. In order to
+simplify the user-experience, the application mirrors the camera feed such that
+an object on the right side behind the vehicle will appear on the right side of
+the tablets screen, just like a rear-view mirror. Color coded guidelines are
+overlaid on top of the video feed to provide a distance reference for the
+driver.
 
 When the vehicle is taken out of reverse, the application will automatically
 close, returning the tablet to its previous screen before FordBackupCam was
 launched.
 
-When the driver turns the steering wheel, the
-car will obviously not continue along the straight, guiding lines that appear
-over top of the video feed. Instead, the vehicle will curve to the side. When
-the vehicle turns the wheel to the left, the vehicle will turn backwards and to
-the left when in reverse, and new guiding lines will appear on the screen in
-order to APPROXIMATE the path of the vehicle. The greater the angle of the
-steering wheel, the more the vehicle will turn, and thus the new guiding lines
-will shift and angle themselves more. This also works (mirrored, of course) if
-the wheel is turned to the right.
+### Steering Wheel Angle Input
+
+When the driver turns the steering wheel, the car will obviously not continue
+along the straight guiding-lines overlaid on the video feed. When the driver
+backs up with the wheel turned left, the vehicle will turn backwards and to the
+left accordingly so new guiding lines will appear on the screen in order to
+APPROXIMATE the path of the vehicle. The greater the angle of the steering
+wheel, the more the vehicle will turn, and thus the new guiding lines will shift
+and angle themselves more. This also works (mirrored, of course) if the wheel is
+turned to the right.
 
 The user's attention should be drawn to the dynamic guiding lines more as the
 magnitude of the angle of the steering wheel increases, so the straight guiding
 lines fade away while the dynamic lines become brighter and more opaque. The
 opposite is true as the magnitude of the angle of the steering wheel increases.
 The dynamic lines vanish when the vehicles steering wheel is straight.
+
+![Backup Camera Sequence](/images/screenshots/backup_cam_sequence.gif)
 
 ## Relaunching FordBackupCam
 
@@ -108,13 +121,13 @@ disconnect in order to restart the VehicleMonitoringService (see below).
 It is recommended that you check the enabler or VehicleDashboard in order
 to ensure that messages are flowing from the CAN Translator.
 
-## Code intricacies
+## Android Source Code
 
-The android project contains four main classes.
+Below is a list of the four main classes with a brief description.
 
 ### BackupCameraActivity
 
-This is the main activity.When created, it starts the VehicleMonitoringService.
+This is the main activity. When created, it starts the VehicleMonitoringService.
 It contains two receivers:
 
 * Receiver that listens for a USB device being detached. When this intent is
@@ -123,8 +136,8 @@ It contains two receivers:
 * Receiver that listens for a closing intent from the VehicleMonitoringService.
   When this intent is received, the app closes by calling is finish() method.
 
-Includes a method that monitors whether the activity is active or not,
-called isRunning(). This method is accessed by the VehicleMonitoringService
+It includes a method that monitors whether the activity is active or not
+(`isRunning()`). This method is accessed by the VehicleMonitoringService
 to determine whether or not the activity needs to be launched/closed (see
 VehicleMonitoringService).
 
@@ -143,22 +156,27 @@ on the tablet and it's ready to go.
 * Every item displayed on the screen is created as a bitmap in this view.
 * The camera feed is converted to a bitmap throug the use of an ImageProc.c
 native jni file that grabs the camera, prepares it with base, etc.
-* A png image containing the red, yellow, and green straight overlay lines
+
+A png image containing the red, yellow, and green straight overlay lines
 is located in res/drawable. CameraPreview accesses this file and converts
 it to a bitmap. This bitmap is drawn to the canvas after the video feed,
 thus overlaying it on top of the video feed.
+
 * A png image of an ibook icon is also located in res/drawable and accessed
 by CameraPreview to be converted to a bitmap. This is also drawn to the
-canvas after the video feed, thus overlaying it.
+ after the video feed, thus overlaying it.
+
 * To the right of the ibook icon is a warning message that reads "Please
 Check Surroundings for Safety". This is drawn with the canvas.drawText
 method. In order to make this text visible regardless of what is behind
 it in the video feed, an outline is drawn with black, slightly larger font
 around the text.
-* The last bitmap that is drawn to the canvas is one that contains the
+
+The last bitmap that is drawn to the canvas is one that contains the
 dynamic lines. As previously discussed, the dynamic lines bend and change
 opacity based on the angle of the steering wheel. The angle of the
-steering wheel is accessed through the VehicleMonitoringService (see #4..
+steering wheel is accessed through the VehicleMonitoringService.
+
 * In order to make the app function on all screen sizes, CameraPreview
 contains several methods that relate the screen size to the size of the
 bitmaps drawn. Each bitmap drawn is manipulated through the use of a
@@ -173,12 +191,13 @@ can be found in the ImageProc.c jni file.
 
 ### VehicleMonitoringService
 
+The purpose of this service is to bind with the VehicleManager, a service
+performed by the OpenXC Enabler application. The service implements two
+listeners, one for the steering wheel angle and one for the transmission gear
+position.
+
 * This service is launched both on bootup by BootupReceiver (see #2. and when
   BackupCameraActivity (see #1. is launched.
-* The purpose of this service is to bind with the VehicleManager, a service
-  performed by the OpenXC Enabler application. The service implements two
-  listeners, one for the steering wheel angle and one for the transmission gear
-  position.
 * The service also monitors the status of the activity (whether is is running or
   not). By monitoring both the status of the transmission and the status of the
   activity, the service can launch the activity appropriately. When the service
@@ -204,10 +223,6 @@ simply reinstalling the application on an Android device does not implement
 these changes. This is easiest done with installing the NDK
 (http://developer.android.com/tools/sdk/ndk/index.html)
 
-## Dependencies
-
-* The OpenXC library
-
 ## Requirements
 
 * OpenXC Enabler application must also be installed on device.
@@ -229,3 +244,5 @@ format.
 Guaranteed supported platform : Toshiba Thrive running Android 3.2
 
 This application will also work on V4L2-enabled pandaboard and beagleboard.
+
+[USB webcam]: http://www.logitech.com/en-us/product/webcam-C110?crid=34
