@@ -1,4 +1,4 @@
-package com.ford.openxc.backupcam;
+package com.ford.openxc.rearview;
 
 
 import android.app.Service;
@@ -26,18 +26,18 @@ import com.openxc.remote.VehicleServiceException;
  * position.
  *
  * This service is launched both on bootup by BootupReceiver (see #2. and when
- * BackupCameraActivity (see #1. is launched.
+ * RearviewCameraActivity (see #1. is launched.
  * The service also monitors the status of the activity (whether is is running or
  * not). By monitoring both the status of the transmission and the status of the
  * activity, the service can launch the activity appropriately. When the service
  * detects that the vehicle has been put into reverse, it checks to see if the
  * activity is running or not through the isRunning() method in
- * BackupCameraActivity. If the activity is not running, then both conditions are
+ * RearviewCameraActivity. If the activity is not running, then both conditions are
  * satisfied for it to launch the activity. In addition, if the service detects
  * that the vehicle is no longer in reverse, it checks whether the activity is
  * running or not through the same method. If it is running and the car is not in
- * reverse, it sends an intent to BackupCameraActivity. When that intent is
- * received, BackupCameraActivity calls its finish() method, which closes the
+ * reverse, it sends an intent to RearviewCameraActivity. When that intent is
+ * received, RearviewCameraActivity calls its finish() method, which closes the
  * application.
  */
 public class VehicleMonitoringService extends Service {
@@ -58,19 +58,19 @@ public class VehicleMonitoringService extends Service {
             public void run() {
 
                 if (status.getValue().enumValue() == TransmissionGearPosition.GearPosition.REVERSE
-                        && !BackupCameraActivity.isRunning()){
+                        && !RearviewCameraActivity.isRunning()){
 
-                    startBackupCameraActivity();
+                    startRearviewCameraActivity();
                 }
                 else if (status.getValue().enumValue() != TransmissionGearPosition.GearPosition.REVERSE
-                        && BackupCameraActivity.isRunning()) {
+                        && RearviewCameraActivity.isRunning()) {
 
                     sendVehicleUnreversedBroadcast();
                 }
             }
 
-            private void startBackupCameraActivity() {
-                    Intent launchIntent = new Intent(VehicleMonitoringService.this, BackupCameraActivity.class);
+            private void startRearviewCameraActivity() {
+                    Intent launchIntent = new Intent(VehicleMonitoringService.this, RearviewCameraActivity.class);
                     launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     VehicleMonitoringService.this.startActivity(launchIntent);
                     Log.i(TAG, "Activity Launched from Vehicle Monitoring Service");

@@ -1,4 +1,4 @@
-package com.ford.openxc.backupcam;
+package com.ford.openxc.rearview;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -12,7 +12,7 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
 
-/** Primary entry point and activity for the BackupCamera application.
+/** Primary entry point and activity for the RearviewCamera application.
  *
  * When created, it starts the VehicleMonitoringService. It contains two
  * receivers:
@@ -28,9 +28,9 @@ import android.util.Log;
  * determine whether or not the activity needs to be launched/closed (see
  * VehicleMonitoringService).
 */
-public class BackupCameraActivity extends Activity {
+public class RearviewCameraActivity extends Activity {
 
-    private final static String TAG = "BackupCameraActivity";
+    private final static String TAG = "RearviewCameraActivity";
     private static boolean activityRunning=false;
     CameraPreview cp;
 
@@ -85,9 +85,9 @@ public class BackupCameraActivity extends Activity {
     }
 
     public void startVehicleMonitoringService() {
-        Intent VehicleMonitoringServiceIntent = new Intent(BackupCameraActivity.this, VehicleMonitoringService.class);
+        Intent VehicleMonitoringServiceIntent = new Intent(RearviewCameraActivity.this, VehicleMonitoringService.class);
         startService(VehicleMonitoringServiceIntent);
-         Log.i(TAG, "Starting Service from BackupCameraActivity");
+         Log.i(TAG, "Starting Service from RearviewCameraActivity");
     }
 
     private void registerUsbDetachedCloseReceiver() {
@@ -114,7 +114,7 @@ public class BackupCameraActivity extends Activity {
             vibrator.vibrate(2000);
             new AlertDialog.Builder(this)
             .setTitle("USB Device Unplugged!")
-            .setMessage("FordBackupCam is closing. Please reconnect device(s) and relaunch app.")
+            .setMessage("FordRearviewCam is closing. Please reconnect device(s) and relaunch app.")
             .setCancelable(false)
             .setNeutralButton("Close", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {

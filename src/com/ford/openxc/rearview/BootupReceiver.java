@@ -1,4 +1,4 @@
-package com.ford.openxc.backupcam;
+package com.ford.openxc.rearview;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

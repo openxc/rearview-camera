@@ -1,25 +1,25 @@
-OpenXC Backup Camera
-======================
+Rearview Camera with OpenXC
+=================================
 
-This document assumes the user has access to a CAN Translator.
+The Rearview Camera is an Android app that uses OpenXC and a standard USB
+webcam to add a rear-facing camera to a car that didn't come equipped with one
+from the factory. Charles Reitz developed the first version of this app as a
+summer intern at Ford in 2012.
 
-## Purpose
+Rearview cameras are undeniably useful, and have been found to minimize
+accidents while backing up. They will even be required in all new cars in the
+United states, [starting in
+2014](http://www.nytimes.com/2012/02/28/business/us-rule-set-for-cameras-at-cars-rear.html?_r=0).
+What about all the existing cars on the road? Using OpenXC to determine the
+current gear and the support for [USB webcams][USB webcam] in most Android
+devices, you can make an aftermarket system relatively inexpensively.
 
-This application, FordBackupCam, seeks to mimic the functionality of the built
-in Ford backup camera systems. The built-in systems serve as an aid to the
-driver by allowing him/her to see any obstacles that may be behind the vehicle
-in order to avoid a collision. This application provides an alternative to the
-built in camera systems by combining and OpenXC enabled Android app with a [USB
-webcam][].
-
-**Safety Note:** FordBackupCam is intended to be used with a display device that
-has a fixed location, preferably permanently, in the vehicle. For example,
-mounted on the dash. Disclaimer: Never mount anything on the dash such that the
-driver's view is impeded. As this application serves to increase the level of
-safety, the tablet should never be mounted in such a way that safety is
-sacrificed.
-
-![Backup Camera Screenshot](/images/screenshots/backup_cam_1.png)
+**Disclaimer** This application is intended to be used with a display device
+that has a fixed, preferably permanent location in the vehicle. For example,
+mounted on the dash. Never mount anything on the dash such that the driver's
+view is impeded. While the rearview camera application may help increase
+visibility, the OpenXC platform does not make any claims of a safety benefit.
+This application is inteded as a proof-of-concept.
 
 ## Hardware Needed
 
@@ -30,18 +30,18 @@ sacrificed.
    vehicles](/vehicle-interface/index.html))
 1. USB hub
 
-FordBackupCam requires a connection from the Android device to a Vehicle
-Interface (installation instructions [here](/vehicle-interface/index.html)). As
-both the webcam and the VI require a full-sized USB connection, a
-USB hub is required to connect both the CAN Translator and the USB webcam to the
-Android device. However, the VI can be connected via bluetooth in
-which case you don't need a USB hub as only 1 USB device will be plugged in.
+The app requires a connection from the Android device to a Vehicle Interface
+(installation instructions [here](/vehicle-interface/index.html)). As both the
+webcam and the VI require a full-sized USB connection, a USB hub is required to
+connect both the CAN Translator and the USB webcam to the Android device.
+However, the VI can be connected via bluetooth in which case you don't need a
+USB hub as only 1 USB device will be plugged in.
 
 ## Installation instructions
 
 1. Install OpenXC Enabler application on android device
 1. Run `ndk-build` to compile the native camera library.
-1. Install FordBackupCam application on same device
+1. Install the RearviewCamera application on the device
 1. Restart tablet (optionally, manually launch application after completing
    steps 4-10. This must only be done once after installation
 1. Mount android device in vehicle
@@ -55,9 +55,7 @@ which case you don't need a USB hub as only 1 USB device will be plugged in.
    end should be in the hub, micro end in the translator)
 1. Insert hub into android device.
 
-FordBackupCam is now ready to be used.
-
-![Backup Camera Installed on Focus](/images/screenshots/backup_cam.jpg)
+You're now ready to test.
 
 ## Functionality
 
@@ -79,7 +77,7 @@ overlaid on top of the video feed to provide a distance reference for the
 driver.
 
 When the vehicle is taken out of reverse, the application will automatically
-close, returning the tablet to its previous screen before FordBackupCam was
+close, returning the tablet to its previous screen before RearviewCamera was
 launched.
 
 ### Steering Wheel Angle Input
@@ -99,9 +97,7 @@ lines fade away while the dynamic lines become brighter and more opaque. The
 opposite is true as the magnitude of the angle of the steering wheel increases.
 The dynamic lines vanish when the vehicles steering wheel is straight.
 
-![Backup Camera Sequence](/images/screenshots/backup_cam_sequence.gif)
-
-## Relaunching FordBackupCam
+## Relaunching the Application
 
 Again with safety as a top priority, the application is designed to close
 itself and display a warning message if one of the USB devices is unplugged.

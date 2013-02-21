@@ -78,8 +78,8 @@ int closedevice(void);
 
 void yuyv422toABGRY(unsigned char *src);
 
-jint Java_com_ford_openxc_backupcam_CameraPreview_prepareCamera( JNIEnv* env,jobject thiz, jint videoid);
-jint Java_com_ford_openxc_backupcam_CameraPreview_prepareCameraWithBase( JNIEnv* env,jobject thiz, jint videoid, jint videobase);
-void Java_com_ford_openxc_backupcam_CameraPreview_processCamera( JNIEnv* env,jobject thiz);
-void Java_com_ford_openxc_backupcam_CameraPreview_stopCamera(JNIEnv* env,jobject thiz);
-void Java_com_ford_openxc_backupcam_CameraPreview_pixeltobmp( JNIEnv* env,jobject thiz,jobject bitmap);                                                  
+jint Java_com_ford_openxc_rearview_CameraPreview_prepareCamera( JNIEnv* env,jobject thiz, jint videoid);
+jint Java_com_ford_openxc_rearview_CameraPreview_prepareCameraWithBase( JNIEnv* env,jobject thiz, jint videoid, jint videobase);
+void Java_com_ford_openxc_rearview_CameraPreview_processCamera( JNIEnv* env,jobject thiz);
+void Java_com_ford_openxc_rearview_CameraPreview_stopCamera(JNIEnv* env,jobject thiz);
+void Java_com_ford_openxc_rearview_CameraPreview_pixeltobmp( JNIEnv* env,jobject thiz,jobject bitmap);                                                  

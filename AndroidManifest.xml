@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="com.ford.openxc.backupcam"
+        package="com.ford.openxc.rearview"
         android:label="@string/app_name"
         android:versionCode="1"
         android:versionName="1.0">
@@ -19,7 +19,7 @@
     <application android:label="@string/app_name" android:allowBackup="true"
             android:debuggable="true">
 
-        <activity android:name="com.ford.openxc.backupcam.BackupCameraActivity"
+        <activity android:name=".RearviewCameraActivity"
                 android:screenOrientation="sensorLandscape">
 
             <intent-filter>
@@ -39,7 +39,7 @@
         <service android:name=".VehicleMonitoringService"/>
         <service android:name="com.openxc.VehicleManager"/>
 
-        <receiver android:name="com.ford.openxc.backupcam.BootupReceiver">
+        <receiver android:name=".BootupReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
                 <service android:name="com.openxc.VehicleManager"/>
