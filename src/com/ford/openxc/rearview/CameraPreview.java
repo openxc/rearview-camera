@@ -12,46 +12,29 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-/** Creates view to be displayed with camera feed as background.
+/** Creates bitmap image showing video feed with graphic overlays.
  *
- * This is the view to which the screen is set. Every item displayed on the
- * screen is created as a bitmap in this view. The camera feed is converted to a
- * bitmap throug the use of an ImageProc.c native jni file that grabs the
- * camera, prepares it with base, etc.
+ * The camera feed is converted to a bitmap using code based on the
+ * simple-web-cam project (https://bitbucket.org/neuralassembly/simplewebcam).
  *
- * A png image containing the red, yellow, and green straight overlay lines
- * is located in res/drawable. CameraPreview accesses this file and converts
- * it to a bitmap. This bitmap is drawn to the canvas after the video feed,
- * thus overlaying it on top of the video feed.
+ * The graphical overlays include a PNG showing red, yellow and green distance
+ * measures and a PNG icon of a book (TODO is the book necessary? do we have a
+ * license for that?).
  *
- * A png image of an ibook icon is also located in res/drawable and accessed
- * by CameraPreview to be converted to a bitmap. This is also drawn to the
- *  after the video feed, thus overlaying it.
+ * Text is drawn to the screen with a black outline to increase visibility.
  *
- * To the right of the ibook icon is a warning message that reads "Please Check
- * Surroundings for Safety". This is drawn with the canvas.drawText method. In
- * order to make this text visible regardless of what is behind it in the video
- * feed, an outline is drawn with black, slightly larger font around the text.
+ * The steering wheel angle guide lines are generated and drawn on the screen
+ * dynamically.
  *
- * The last bitmap that is drawn to the canvas is one that contains the
- * dynamic lines. As previously discussed, the dynamic lines bend and change
- * opacity based on the angle of the steering wheel. The angle of the
- * steering wheel is accessed through the VehicleMonitoringService.
+ * To increase portability to devices with different screen sizes, most of the
+ * methods of this class take the screen size as a parameter. The proportions of
+ * all elements on the screen should remain the same regardless of screen size.
  *
- * In order to make the app function on all screen sizes, CameraPreview
- * contains several methods that relate the screen size to the size of the
- * bitmaps drawn. Each bitmap drawn is manipulated through the use of a
- * matrix that is scaled relative to the dimensions of the screen, thus
- * allowing the proportions of all items displayed to remain constant from
- * screen to screen, independent of size. This is done by finding the ratio
- * between the native size of the bitmap and the size of the screen and
- * multiplying by that ratio. Proportions are thus preserved on every
- * screen.
- *
- * When the surface is destroyed, the stopCamera() method is called, which
- * can be found in the ImageProc.c jni file.
+ * The JNI implementation is based off of the "simple-web-cam" project:
+ * https://bitbucket.org/neuralassembly/simplewebcam from neuralassembly.
 */
-class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runnable {
+class CameraPreview extends SurfaceView implements SurfaceHolder.Callback,
+        Runnable {
 
     public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
     public static final String NO_CAMERA_DETECTED = "com.ford.openxc.NO_CAMERA_DETECTED";
@@ -106,40 +89,35 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     @Override
     public void run() {
         if (cameraExists) {
-           while (true && cameraExists) {
+            while (!shouldStop && cameraExists) {
 
-               // obtaining a camera image (pixel data are stored in an array in JNI).
-               processCamera();
+                // obtaining a camera image (pixel data are stored in an array in
+                // JNI).
+                processCamera();
 
-               // camera image to bmp
-               pixeltobmp(bmpVideoFeed);
+                // camera image to bmp
+                pixeltobmp(bmpVideoFeed);
 
-               Canvas canvas = getHolder().lockCanvas();
+                Canvas canvas = getHolder().lockCanvas();
 
-               if (canvas != null) {
-
+                if (canvas != null) {
                     // draw bitmaps to canvas
-                   drawVideoFeedBitmap(canvas);
-                   drawOverlayLinesBitmap(canvas);
-                   drawIbookBitmap(canvas);
-                   drawDynamicLinesBitmap(canvas);
+                    drawVideoFeedBitmap(canvas);
+                    drawOverlayLinesBitmap(canvas);
+                    drawIbookBitmap(canvas);
+                    drawDynamicLinesBitmap(canvas);
 
-                   //must draw outline paint first, otherwise yields thick black text with small white inside
-                   drawWarningTextOutline(canvas);
-                   drawWarningText(canvas);
+                    //must draw outline paint first, otherwise yields thick black
+                    //text with small white inside
+                    drawWarningTextOutline(canvas);
+                    drawWarningText(canvas);
 
-                     getHolder().unlockCanvasAndPost(canvas);
-               }
-
-               if(shouldStop){
-                   shouldStop = false;
-                   break;
-               }
-           }
-         }
-           else {
-          sendNoCameraDetectedBroadcast();
-           }
+                    getHolder().unlockCanvasAndPost(canvas);
+                }
+            }
+        } else {
+            sendNoCameraDetectedBroadcast();
+        }
     }
 
     /**bitmap drawing methods**/
@@ -148,7 +126,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     }
 
     private void drawOverlayLinesBitmap(Canvas canvas) {
-        canvas.drawBitmap(bmpOverlayLines, createOverlayMatrix(), createOverlayPaint());
+        canvas.drawBitmap(bmpOverlayLines, createOverlayMatrix(),
+                createOverlayPaint());
     }
 
     private void drawIbookBitmap(Canvas canvas) {
@@ -156,7 +135,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     }
 
     private void drawDynamicLinesBitmap(Canvas canvas) {
-        canvas.drawBitmap(bmpDynamicLines, createDynamicLinesMatrix(), createDynamicLinesPaint());
+        canvas.drawBitmap(bmpDynamicLines, createDynamicLinesMatrix(),
+                createDynamicLinesPaint());
     }
 
     /**matrix creation methods**/
@@ -164,9 +144,12 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 
         Matrix videoFeedMatrix = new Matrix();
 
-        videoFeedMatrix.preScale(-computeScreenToFeedWidthRatio(), computeScreenToFeedHeightRatio());
-        videoFeedMatrix.postTranslate((float)(0.5*getScreenWidth())+(float)(0.5*computeAdjustedVideoFeedWidth()),
-             (float)(0.5*getScreenHeight())-(float)(0.5*computeAdjustedVideoFeedHeight()));
+        videoFeedMatrix.preScale(-computeScreenToFeedWidthRatio(),
+                computeScreenToFeedHeightRatio());
+        videoFeedMatrix.postTranslate((float)(0.5*getScreenWidth()) +
+                    (float)(0.5*computeAdjustedVideoFeedWidth()),
+                (float)(0.5*getScreenHeight()) -
+                    (float)(0.5*computeAdjustedVideoFeedHeight()));
 
         return videoFeedMatrix;
     }
@@ -175,7 +158,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 
         Matrix overlayMatrix = new Matrix();
 
-        overlayMatrix.preScale(computeScreenToOverlayWidthRatio(), computeScreenToOverlayHeightRatio());
+        overlayMatrix.preScale(computeScreenToOverlayWidthRatio(),
+                computeScreenToOverlayHeightRatio());
         overlayMatrix.postTranslate(computeOverlayHorizontalTranslation(),
                 computeOverlayVerticalTranslation());
 
@@ -186,28 +170,37 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 
         Matrix ibookMatrix = new Matrix();
 
-        ibookMatrix.preScale(computeScreenToIbookWidthRatio(), computeScreenToIbookHeightRatio());
-        ibookMatrix.postTranslate(computeIbookHorizontalTranslation(), computeIbookVerticalTranslation());
+        ibookMatrix.preScale(computeScreenToIbookWidthRatio(),
+                computeScreenToIbookHeightRatio());
+        ibookMatrix.postTranslate(computeIbookHorizontalTranslation(),
+                computeIbookVerticalTranslation());
 
         return ibookMatrix;
     }
 
     private Matrix createDynamicLinesMatrix() {
 
-        //place dynamic lines directly on top of overlay by using same translations/ratios
-        float screenToDynamicLinesHeightRatio = computeScreenToOverlayHeightRatio();
-        float screenToDynamicLinesWidthRatio = computeScreenToOverlayWidthRatio();
-        float dynamicLinesVerticalTranslation = computeOverlayVerticalTranslation();
-        float dynamicLinesHorizontalTranslation = computeOverlayHorizontalTranslation();
+        //place dynamic lines directly on top of overlay by using same
+        //translations/ratios
+        float screenToDynamicLinesHeightRatio =
+                computeScreenToOverlayHeightRatio();
+        float screenToDynamicLinesWidthRatio =
+                computeScreenToOverlayWidthRatio();
+        float dynamicLinesVerticalTranslation =
+                computeOverlayVerticalTranslation();
+        float dynamicLinesHorizontalTranslation =
+                computeOverlayHorizontalTranslation();
 
         Matrix dynamicLinesMatrix = new Matrix();
 
-        dynamicLinesMatrix.preScale(screenToDynamicLinesWidthRatio, screenToDynamicLinesHeightRatio);
-        dynamicLinesMatrix.postTranslate(dynamicLinesHorizontalTranslation + 3*(float)getSteeringWheelAngle()/2,
+        dynamicLinesMatrix.preScale(screenToDynamicLinesWidthRatio,
+                screenToDynamicLinesHeightRatio);
+        dynamicLinesMatrix.postTranslate(dynamicLinesHorizontalTranslation +
+                3*(float)getSteeringWheelAngle()/2,
                 dynamicLinesVerticalTranslation);
 
-        //number divided by must be larger than the maximum absolute value the steering wheel can produce because the x skew
-        //must be less than 1
+        //number divided by must be larger than the maximum absolute value the
+        //steering wheel can produce because the x skew must be less than 1
         dynamicLinesMatrix.postSkew(-getSteeringWheelAngle()/480, 0);
 
         return dynamicLinesMatrix;
@@ -215,18 +208,19 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 
     /**text drawing methods**/
     private void drawWarningTextOutline(Canvas canvas) {
-        canvas.drawText("Please Check Surroundings for Safety", getWarningTextXCoordinate(),
-                getWarningTextYCoordinate(), createWarningTextOutlinePaint(createWarningTextPaint()));
+        canvas.drawText("Please Check Surroundings for Safety",
+                getWarningTextXCoordinate(), getWarningTextYCoordinate(),
+                createWarningTextOutlinePaint(createWarningTextPaint()));
     }
 
     private void drawWarningText(Canvas canvas) {
-        canvas.drawText("Please Check Surroundings for Safety", getWarningTextXCoordinate(),
-                getWarningTextYCoordinate(), createWarningTextPaint());
+        canvas.drawText("Please Check Surroundings for Safety",
+                getWarningTextXCoordinate(), getWarningTextYCoordinate(),
+                createWarningTextPaint());
     }
 
     /**paint creation methods**/
     private Paint createWarningTextOutlinePaint(Paint warningTextPaint) {
-
         Paint warningTextOutlinePaint = new Paint();
 
         warningTextOutlinePaint.setStrokeWidth(4);
@@ -237,7 +231,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     }
 
     private Paint createWarningTextPaint() {
-
         Paint warningTextPaint = new Paint();
 
         warningTextPaint.setColor(Color.WHITE);
@@ -253,14 +246,11 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 
         if (steeringWheelValue == 0) {
             overlayPaint.setAlpha(255);
-        }
-        else if (steeringWheelValue/2 > 0 && steeringWheelValue/2 <=255) {
+        } else if (steeringWheelValue/2 > 0 && steeringWheelValue/2 <=255) {
             overlayPaint.setAlpha(255-(int)steeringWheelValue/2);
-        }
-        else if (steeringWheelValue/2 < 0 && steeringWheelValue/2 >= -255) {
+        } else if (steeringWheelValue/2 < 0 && steeringWheelValue/2 >= -255) {
             overlayPaint.setAlpha(255+(int)steeringWheelValue/2);
-        }
-        else {
+        } else {
             overlayPaint.setAlpha(0);
         }
 
@@ -268,17 +258,14 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     }
 
     private Paint createDynamicLinesPaint() {
-
         float steeringWheelValue = getSteeringWheelAngle();
         Paint dynamicLinesPaint = new Paint();
 
         if (steeringWheelValue >= 0 && steeringWheelValue < 255){
             dynamicLinesPaint.setAlpha((int)steeringWheelValue);
-        }
-        else if (steeringWheelValue < 0 && steeringWheelValue > -255){
+        } else if (steeringWheelValue < 0 && steeringWheelValue > -255){
             dynamicLinesPaint.setAlpha(-(int)steeringWheelValue);
-        }
-        else {
+        } else {
             dynamicLinesPaint.setAlpha(255);
         }
 
@@ -287,63 +274,55 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
 
     /**steering wheel angle retrieval method**/
     private float getSteeringWheelAngle() {
-        float steeringWheelValue = (float)VehicleMonitoringService.SteeringWheelAngle;
-        return steeringWheelValue;
+        return (float) VehicleMonitoringService.SteeringWheelAngle;
     }
 
     /**coordinate retrieval methods**/
     private float getWarningTextYCoordinate() {
-        float warningTextYCoordinate = computeIbookVerticalTranslation() + computeAdjustedIbookHeight();
-        return warningTextYCoordinate;
+        return computeIbookVerticalTranslation() + computeAdjustedIbookHeight();
     }
 
     private float getWarningTextXCoordinate() {
-        float warningTextXCoordinate = computeIbookHorizontalTranslation() + (float)1.5*computeAdjustedIbookWidth();
-        return warningTextXCoordinate;
+        return computeIbookHorizontalTranslation() +
+                (float)1.5*computeAdjustedIbookWidth();
     }
 
     /**ibook translation computation methods**/
     private float computeIbookVerticalTranslation() {
-        float ibookVerticalTranslation = (float)(0.02*getScreenHeight());
-            return ibookVerticalTranslation;
+        return (float)(0.02*getScreenHeight());
     }
 
     private float computeIbookHorizontalTranslation() {
-        float ibookHorizontalTranslation = (float)0.02*getScreenWidth();
-            return ibookHorizontalTranslation;
+        return (float)0.02*getScreenWidth();
     }
 
     /**overlay translation computation methods**/
     private float computeOverlayHorizontalTranslation() {
-        float overlayHorizontalTranslation = (float)(0.5*getScreenWidth())-(float)(0.5*computeAdjustedOverlayWidth());
-            return overlayHorizontalTranslation;
+        return (float)(0.5*getScreenWidth()) -
+                (float)(0.5*computeAdjustedOverlayWidth());
     }
 
     private float computeOverlayVerticalTranslation() {
-        float overlayVerticalTranslation = (float)(0.5*getScreenHeight())-(float)(0.3*computeAdjustedOverlayHeight());
-        return overlayVerticalTranslation;
+        return (float)(0.5*getScreenHeight()) -
+                (float)(0.3*computeAdjustedOverlayHeight());
     }
 
     /**screen to video feed ratio computation methods**/
     private float computeScreenToFeedHeightRatio() {
-        float screenToFeedHeightRatio = getScreenHeight()/(float)bmpVideoFeed.getHeight();
-            return screenToFeedHeightRatio;
+         return getScreenHeight() / bmpVideoFeed.getHeight();
     }
 
     private float computeScreenToFeedWidthRatio() {
-        float screenToFeedWidthRatio = getScreenWidth()/(float)bmpVideoFeed.getWidth();
-            return screenToFeedWidthRatio;
+        return getScreenWidth()/(float)bmpVideoFeed.getWidth();
     }
 
     /**screen to overlay ratio computation methods**/
     private float computeScreenToOverlayHeightRatio() {
-        float screenToOverlayHeightRatio = (float)0.5*getScreenHeight()/(float)bmpOverlayLines.getHeight();
-            return screenToOverlayHeightRatio;
+        return (float)0.5*getScreenHeight()/(float)bmpOverlayLines.getHeight();
     }
 
     private float computeScreenToOverlayWidthRatio() {
-        float screenToOverlayWidthRatio = (float)0.85*getScreenWidth()/(float)bmpOverlayLines.getWidth();
-            return screenToOverlayWidthRatio;
+        return (float)0.85*getScreenWidth()/(float)bmpOverlayLines.getWidth();
     }
 
     /**screen to ibook ratio computation methods**/
@@ -353,52 +332,43 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     }
 
     private float computeScreenToIbookHeightRatio() {
-        float screenToIbookHeightRatio = getScreenHeight()/bmpIbook.getHeight()/20;
-            return screenToIbookHeightRatio;
+        return getScreenHeight()/bmpIbook.getHeight()/20;
     }
 
     /**adjusted video feed dimensions computation methods**/
     private float computeAdjustedVideoFeedHeight() {
-        float adjustedVideoFeedHeight = computeScreenToFeedHeightRatio()*bmpVideoFeed.getHeight();
-            return adjustedVideoFeedHeight;
+        return computeScreenToFeedHeightRatio()*bmpVideoFeed.getHeight();
     }
 
     private float computeAdjustedVideoFeedWidth() {
-        float adjustedVideoFeedWidth = computeScreenToFeedWidthRatio()*bmpVideoFeed.getWidth();
-            return adjustedVideoFeedWidth;
+        return computeScreenToFeedWidthRatio()*bmpVideoFeed.getWidth();
     }
 
     /**adjusted overlay dimensions computation methods**/
     private float computeAdjustedOverlayHeight() {
-        float adjustedOverlayHeight = computeScreenToOverlayHeightRatio()*bmpOverlayLines.getHeight();
-            return adjustedOverlayHeight;
+        return computeScreenToOverlayHeightRatio()*bmpOverlayLines.getHeight();
     }
 
     private float computeAdjustedOverlayWidth() {
-        float adjustedOverlayWidth = computeScreenToOverlayWidthRatio()*bmpOverlayLines.getWidth();
-            return adjustedOverlayWidth;
+        return computeScreenToOverlayWidthRatio()*bmpOverlayLines.getWidth();
     }
 
     /**adjusted ibook dimensions computation methods**/
     private float computeAdjustedIbookHeight() {
-        float adjustedIbookHeight = computeScreenToIbookHeightRatio()*bmpIbook.getHeight();
-            return adjustedIbookHeight;
+        return computeScreenToIbookHeightRatio()*bmpIbook.getHeight();
     }
 
     private float computeAdjustedIbookWidth() {
-        float adjustedIbookWidth = computeScreenToIbookWidthRatio()*bmpIbook.getWidth();
-            return adjustedIbookWidth;
+        return computeScreenToIbookWidthRatio()*bmpIbook.getWidth();
     }
 
     /**get screen dimensions methods**/
     private float getScreenHeight() {
-        float screenHeight= context.getResources().getDisplayMetrics().heightPixels;
-            return screenHeight;
+        return context.getResources().getDisplayMetrics().heightPixels;
     }
 
     private float getScreenWidth() {
-        float screenWidth = context.getResources().getDisplayMetrics().widthPixels;
-            return screenWidth;
+        return context.getResources().getDisplayMetrics().widthPixels;
     }
 
     /**send broadcast method**/
@@ -413,23 +383,22 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
         if(DEBUG) Log.d("WebCam", "surfaceCreated");
         //if null, create each bitmap
         if(bmpVideoFeed==null){
-
-            bmpVideoFeed = Bitmap.createBitmap(IMG_WIDTH, IMG_HEIGHT, Bitmap.Config.ARGB_8888);
-
+            bmpVideoFeed = Bitmap.createBitmap(IMG_WIDTH, IMG_HEIGHT,
+                    Bitmap.Config.ARGB_8888);
         }
         if(bmpOverlayLines==null){
-
-            bmpOverlayLines = BitmapFactory.decodeResource(getResources(), R.drawable.overlay);
+            bmpOverlayLines = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.overlay);
         }
 
         if(bmpIbook==null){
-
-            bmpIbook = BitmapFactory.decodeResource(getResources(), R.drawable.ibook);
+            bmpIbook = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.ibook);
         }
 
         if(bmpDynamicLines==null){
-
-            bmpDynamicLines = BitmapFactory.decodeResource(getResources(), R.drawable.dynamiclines);
+            bmpDynamicLines = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.dynamiclines);
         }
 
         // /dev/videox (x=cameraId + cameraBase) is used
@@ -444,7 +413,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    public void surfaceChanged(SurfaceHolder holder, int format, int width,
+            int height) {
         if(DEBUG) Log.d("WebCam", "surfaceChanged");
     }
 
@@ -453,7 +423,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Runna
         if(DEBUG) Log.d("WebCam", "surfaceDestroyed");
         if(cameraExists){
             shouldStop = true;
-            while(shouldStop){
+            while(shouldStop) {
                 try{
                     Thread.sleep(100); // wait for thread stopping
                 }

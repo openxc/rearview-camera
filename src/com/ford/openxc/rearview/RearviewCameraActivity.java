@@ -14,20 +14,19 @@ import android.util.Log;
 
 /** Primary entry point and activity for the RearviewCamera application.
  *
- * When created, it starts the VehicleMonitoringService. It contains two
- * receivers:
+ * If it's not already started (as a result of the BootupReceiver), this
+ * activity starts the VehicleMonitoringService.
  *
- * Receiver that listens for a USB device being detached. When this intent is
- * received, it builds a dialog that informs the user of what has happened, and
- * forces them to close the activity. Receiver that listens for a closing intent
- * from the VehicleMonitoringService. When this intent is received, the app
- * closes by calling is finish() method.
+ * It receives two types of broadcasts:
  *
- * It includes a method that monitors whether the activity is active or not
- * (`isRunning()`). This method is accessed by the VehicleMonitoringService to
- * determine whether or not the activity needs to be launched/closed (see
- * VehicleMonitoringService).
-*/
+ * It listens for broadcasts of a USB device being detached. If this device is
+ * the USB camera, the activity wanrs the users with a modal dialog, so they
+ * don't mistakenly believe the camera is working when in fact it is detached.
+ *
+ * It listenes for a broadcast sent when the vehicle shifts out of "reverse"
+ * into another gear, and stops displaying the video feed. The activity will
+ * exit.
+ */
 public class RearviewCameraActivity extends Activity {
 
     private final static String TAG = "RearviewCameraActivity";
@@ -58,6 +57,8 @@ public class RearviewCameraActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.w("USB ERROR", "USB Device Detached");
+            // TODO check the class of device to see if it was a webcam, and put
+            // that in the device filter if we can
             usbError();
         }
     };
@@ -85,9 +86,10 @@ public class RearviewCameraActivity extends Activity {
     }
 
     public void startVehicleMonitoringService() {
-        Intent VehicleMonitoringServiceIntent = new Intent(RearviewCameraActivity.this, VehicleMonitoringService.class);
+        Intent VehicleMonitoringServiceIntent = new Intent(
+                RearviewCameraActivity.this, VehicleMonitoringService.class);
         startService(VehicleMonitoringServiceIntent);
-         Log.i(TAG, "Starting Service from RearviewCameraActivity");
+        Log.i(TAG, "Starting Service from RearviewCameraActivity");
     }
 
     private void registerUsbDetachedCloseReceiver() {
@@ -110,18 +112,21 @@ public class RearviewCameraActivity extends Activity {
 
     public void usbError(){
         if (isRunning() == true) {
-            Vibrator vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+            Vibrator vibrator = (Vibrator) this.getSystemService(
+                    Context.VIBRATOR_SERVICE);
             vibrator.vibrate(2000);
             new AlertDialog.Builder(this)
-            .setTitle("USB Device Unplugged!")
-            .setMessage("FordRearviewCam is closing. Please reconnect device(s) and relaunch app.")
-            .setCancelable(false)
-            .setNeutralButton("Close", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    activityRunning = false;
-                    android.os.Process.killProcess(android.os.Process.myPid());
-                }
-            }).show();
+                .setTitle("USB Device Unplugged!")
+                .setMessage("RearviewCamera is exiting because a USB device " +
+                        "was detached - relaunch the app after plugging " +
+                        "it in again")
+                .setCancelable(false)
+                .setNeutralButton("Close", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        activityRunning = false;
+                        android.os.Process.killProcess(android.os.Process.myPid());
+                    }
+                }).show();
         }
         else if (isRunning() == false) {
             android.os.Process.killProcess(android.os.Process.myPid());
