@@ -42,6 +42,7 @@ This application is inteded as a proof-of-concept.
   Library](http://openxcplatform.com/getting-started/library-installation.html)
 * [Android SDK](http://developer.android.com/sdk/index.html)
 * [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html)
+* [Android Webcam library](https://github.com/openxc/android-webcam)
 
 [USB webcam]: http://www.logitech.com/en-us/product/webcam-C110?crid=34
 
@@ -106,29 +107,3 @@ disconnect in order to restart the VehicleMonitoringService (see below).
 
 It is recommended that you check the enabler or VehicleDashboard in order
 to ensure that messages are flowing from the CAN Translator.
-
-<h2><a name="android-usb-webcam">Android Support for USB Webcams</a></h2>
-
-To use a USB webcam in Android, the kernel must be compiled with `V4L2`, e.g.:
-
-    CONFIG_VIDEO_DEV=y
-    CONFIG_VIDEO_V4L2_COMMON=y
-    CONFIG_VIDEO_MEDIA=y
-    CONFIG_USB_VIDEO_CLASS=y
-    CONFIG_V4L_USB_DRIVERS=y
-    CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV=y
-
-If the file `/dev/video0` appears on the device when you plug in a video camera,
-then you've got `V4L2` support. The Toshiba Thrive 10.1" and Google Nexus 7 have
-been confirmed to have the module.
-
-If you have `/dev/video0`, then only other requirement is that the permissions
-of the file are `0666`. This is the troublesome point for many Android devices -
-by default the device will be inaccessible to applications.
-
-If the file is not readable to other users, you need to root your device. Once
-rooted, you can `su` and change the permissions manually with `chmod`. Each time
-you attach and detach the camera, however, the device will go back to the
-default restrictive permissions. If you want to permanently change the
-permissions of the `/dev/video0` file, you'll need to spin a custom Android
-image with the new permissions in a /ueventd.xxxx.rc file.

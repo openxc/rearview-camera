@@ -8,9 +8,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+
+import com.ford.openxc.webcam.WebcamPreview;
 
 /** Creates bitmap image showing video feed with graphic overlays.
  *
@@ -33,75 +35,46 @@ import android.view.SurfaceView;
  * The JNI implementation is based off of the "simple-web-cam" project:
  * https://bitbucket.org/neuralassembly/simplewebcam from neuralassembly.
 */
-class CameraPreview extends SurfaceView implements SurfaceHolder.Callback,
-        Runnable {
+public class CameraPreview extends WebcamPreview {
+
+    private static String TAG = "CameraPreview";
 
     public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
     public static final String NO_CAMERA_DETECTED = "com.ford.openxc.NO_CAMERA_DETECTED";
-    private static final String TAG = "CameraPreview";
 
-    private static final boolean DEBUG = true;
-    protected Context context;
-    private SurfaceHolder holder;
-    Thread mainLoop = null;
     private Bitmap bmpVideoFeed=null;
     private Bitmap bmpOverlayLines=null;
     private Bitmap bmpIbook=null;
-    private Bitmap bmpWarningText=null;
     private Bitmap bmpDynamicLines=null;
 
-    private boolean cameraExists=false;
-    private boolean shouldStop=false;
-
-    // /dev/videox (x=cameraId+cameraBase) is used.
-    // In some omap devices, system uses /dev/video[0-3],
-    // so users must use /dev/video[4-].
-    // In such a case, try cameraId=0 and cameraBase=4
-    private int cameraId=0;
-    private int cameraBase=0;
-
-    // This definition also exists in ImageProc.h.
-    // Webcam must support the resolution 640x480 with YUYV format.
-    static final int IMG_WIDTH=640;
-    static final int IMG_HEIGHT=480;
-
-    // JNI functions
-    public native int prepareCamera(int videoid);
-    public native int prepareCameraWithBase(int videoid, int camerabase);
-    public native void processCamera();
-    public native void stopCamera();
-    public native void pixeltobmp(Bitmap bitmap);
-    static {
-        System.loadLibrary("ImageProc");
+    public CameraPreview(Context context) {
+        super(context);
     }
 
-    CameraPreview(Context context) {
-        super(context);
-        this.context = context;
-        if(DEBUG) Log.d("WebCam","CameraPreview constructed");
-        setFocusable(true);
-
-        holder = getHolder();
-        holder.addCallback(this);
-        holder.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
+    public CameraPreview(Context context, AttributeSet attrs) {
+        super(context, attrs);
     }
 
     @Override
     public void run() {
-        if (cameraExists) {
-            while (!shouldStop && cameraExists) {
+        while(mRunning) {
+            synchronized(mServiceSyncToken) {
+                if(mWebcamManager == null) {
+                    try {
+                        mServiceSyncToken.wait();
+                    } catch(InterruptedException e) {
+                        break;
+                    }
+                }
 
-                // obtaining a camera image (pixel data are stored in an array in
-                // JNI).
-                processCamera();
+                if(!mWebcamManager.cameraAttached()) {
+                    mRunning = false;
+                    sendNoCameraDetectedBroadcast();
+                }
 
-                // camera image to bmp
-                pixeltobmp(bmpVideoFeed);
-
-                Canvas canvas = getHolder().lockCanvas();
-
-                if (canvas != null) {
-                    // draw bitmaps to canvas
+                bmpVideoFeed = mWebcamManager.getImage();
+                Canvas canvas = mHolder.lockCanvas();
+                if(canvas != null) {
                     drawVideoFeedBitmap(canvas);
                     drawOverlayLinesBitmap(canvas);
                     drawIbookBitmap(canvas);
@@ -111,16 +84,12 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback,
                     //text with small white inside
                     drawWarningTextOutline(canvas);
                     drawWarningText(canvas);
-
-                    getHolder().unlockCanvasAndPost(canvas);
+                    mHolder.unlockCanvasAndPost(canvas);
                 }
             }
-        } else {
-            sendNoCameraDetectedBroadcast();
         }
     }
 
-    /**bitmap drawing methods**/
     private void drawVideoFeedBitmap(Canvas canvas) {
         canvas.drawBitmap(bmpVideoFeed, createVideoFeedMatrix(), null);
     }
@@ -364,72 +333,36 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback,
 
     /**get screen dimensions methods**/
     private float getScreenHeight() {
-        return context.getResources().getDisplayMetrics().heightPixels;
+        return mContext.getResources().getDisplayMetrics().heightPixels;
     }
 
     private float getScreenWidth() {
-        return context.getResources().getDisplayMetrics().widthPixels;
+        return mContext.getResources().getDisplayMetrics().widthPixels;
     }
 
     /**send broadcast method**/
     private void sendNoCameraDetectedBroadcast() {
         Intent noCameraDetectedIntent = new Intent(NO_CAMERA_DETECTED);
-             context.sendBroadcast(noCameraDetectedIntent);
-             Log.i(TAG, "No Camera Detected Intent Broadcasted");
+        mContext.sendBroadcast(noCameraDetectedIntent);
+        Log.i(TAG, "No Camera Detected Intent Broadcasted");
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        if(DEBUG) Log.d("WebCam", "surfaceCreated");
-        //if null, create each bitmap
-        if(bmpVideoFeed==null){
-            bmpVideoFeed = Bitmap.createBitmap(IMG_WIDTH, IMG_HEIGHT,
-                    Bitmap.Config.ARGB_8888);
-        }
-        if(bmpOverlayLines==null){
+        super.surfaceCreated(holder);
+        if(bmpOverlayLines == null){
             bmpOverlayLines = BitmapFactory.decodeResource(getResources(),
                     R.drawable.overlay);
         }
 
-        if(bmpIbook==null){
+        if(bmpIbook == null){
             bmpIbook = BitmapFactory.decodeResource(getResources(),
                     R.drawable.ibook);
         }
 
-        if(bmpDynamicLines==null){
+        if(bmpDynamicLines == null){
             bmpDynamicLines = BitmapFactory.decodeResource(getResources(),
                     R.drawable.dynamiclines);
         }
-
-        // /dev/videox (x=cameraId + cameraBase) is used
-        int ret = prepareCameraWithBase(cameraId, cameraBase);
-
-        if(ret!=-1) {
-            cameraExists = true;
-        }
-
-        mainLoop = new Thread(this);
-        mainLoop.start();
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width,
-            int height) {
-        if(DEBUG) Log.d("WebCam", "surfaceChanged");
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        if(DEBUG) Log.d("WebCam", "surfaceDestroyed");
-        if(cameraExists){
-            shouldStop = true;
-            while(shouldStop) {
-                try{
-                    Thread.sleep(100); // wait for thread stopping
-                }
-                catch(Exception e){}
-            }
-        }
-        stopCamera();
     }
 }

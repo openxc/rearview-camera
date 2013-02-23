@@ -37,6 +37,7 @@
         </activity>
 
         <service android:name=".VehicleMonitoringService"/>
+        <service android:name="com.ford.openxc.webcam.WebcamManager"/>
         <service android:name="com.openxc.VehicleManager"/>
 
         <receiver android:name=".BootupReceiver">

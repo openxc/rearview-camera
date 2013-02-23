@@ -37,6 +37,12 @@
             <version>3.0</version>
             <type>apklib</type>
         </dependency>
+        <dependency>
+            <groupId>com.ford.openxc</groupId>
+            <artifactId>webcam</artifactId>
+            <version>1.0</version>
+            <type>apklib</type>
+        </dependency>
     </dependencies>
 
     <build>
