@@ -20,13 +20,8 @@ import com.ford.openxc.webcam.WebcamPreview;
  * simple-web-cam project (https://bitbucket.org/neuralassembly/simplewebcam).
  *
  * The graphical overlays include a PNG showing red, yellow and green distance
- * measures and a PNG icon of a book (TODO is the book necessary? do we have a
- * license for that?).
- *
- * Text is drawn to the screen with a black outline to increase visibility.
- *
- * The steering wheel angle guide lines are generated and drawn on the screen
- * dynamically.
+ * measures. The steering wheel angle guide lines are generated and drawn on the
+ * screen dynamically.
  *
  * To increase portability to devices with different screen sizes, most of the
  * methods of this class take the screen size as a parameter. The proportions of
@@ -44,7 +39,6 @@ public class CameraPreview extends WebcamPreview {
 
     private Bitmap bmpVideoFeed=null;
     private Bitmap bmpOverlayLines=null;
-    private Bitmap bmpIbook=null;
     private Bitmap bmpDynamicLines=null;
 
     public CameraPreview(Context context) {
@@ -77,13 +71,7 @@ public class CameraPreview extends WebcamPreview {
                 if(canvas != null) {
                     drawVideoFeedBitmap(canvas);
                     drawOverlayLinesBitmap(canvas);
-                    drawIbookBitmap(canvas);
                     drawDynamicLinesBitmap(canvas);
-
-                    //must draw outline paint first, otherwise yields thick black
-                    //text with small white inside
-                    drawWarningTextOutline(canvas);
-                    drawWarningText(canvas);
                     mHolder.unlockCanvasAndPost(canvas);
                 }
             }
@@ -97,10 +85,6 @@ public class CameraPreview extends WebcamPreview {
     private void drawOverlayLinesBitmap(Canvas canvas) {
         canvas.drawBitmap(bmpOverlayLines, createOverlayMatrix(),
                 createOverlayPaint());
-    }
-
-    private void drawIbookBitmap(Canvas canvas) {
-        canvas.drawBitmap(bmpIbook, createIbookMatrix(), null);
     }
 
     private void drawDynamicLinesBitmap(Canvas canvas) {
@@ -135,18 +119,6 @@ public class CameraPreview extends WebcamPreview {
         return overlayMatrix;
     }
 
-    private Matrix createIbookMatrix() {
-
-        Matrix ibookMatrix = new Matrix();
-
-        ibookMatrix.preScale(computeScreenToIbookWidthRatio(),
-                computeScreenToIbookHeightRatio());
-        ibookMatrix.postTranslate(computeIbookHorizontalTranslation(),
-                computeIbookVerticalTranslation());
-
-        return ibookMatrix;
-    }
-
     private Matrix createDynamicLinesMatrix() {
 
         //place dynamic lines directly on top of overlay by using same
@@ -175,41 +147,7 @@ public class CameraPreview extends WebcamPreview {
         return dynamicLinesMatrix;
     }
 
-    /**text drawing methods**/
-    private void drawWarningTextOutline(Canvas canvas) {
-        canvas.drawText("Please Check Surroundings for Safety",
-                getWarningTextXCoordinate(), getWarningTextYCoordinate(),
-                createWarningTextOutlinePaint(createWarningTextPaint()));
-    }
-
-    private void drawWarningText(Canvas canvas) {
-        canvas.drawText("Please Check Surroundings for Safety",
-                getWarningTextXCoordinate(), getWarningTextYCoordinate(),
-                createWarningTextPaint());
-    }
-
-    /**paint creation methods**/
-    private Paint createWarningTextOutlinePaint(Paint warningTextPaint) {
-        Paint warningTextOutlinePaint = new Paint();
-
-        warningTextOutlinePaint.setStrokeWidth(4);
-        warningTextOutlinePaint.setStyle(Paint.Style.STROKE);
-        warningTextOutlinePaint.setTextSize(warningTextPaint.getTextSize());
-
-        return warningTextOutlinePaint;
-    }
-
-    private Paint createWarningTextPaint() {
-        Paint warningTextPaint = new Paint();
-
-        warningTextPaint.setColor(Color.WHITE);
-        warningTextPaint.setTextSize(50);
-
-        return warningTextPaint;
-    }
-
     private Paint createOverlayPaint(){
-
         float steeringWheelValue = getSteeringWheelAngle();
         Paint overlayPaint = new Paint();
 
@@ -246,25 +184,6 @@ public class CameraPreview extends WebcamPreview {
         return (float) VehicleMonitoringService.SteeringWheelAngle;
     }
 
-    /**coordinate retrieval methods**/
-    private float getWarningTextYCoordinate() {
-        return computeIbookVerticalTranslation() + computeAdjustedIbookHeight();
-    }
-
-    private float getWarningTextXCoordinate() {
-        return computeIbookHorizontalTranslation() +
-                (float)1.5*computeAdjustedIbookWidth();
-    }
-
-    /**ibook translation computation methods**/
-    private float computeIbookVerticalTranslation() {
-        return (float)(0.02*getScreenHeight());
-    }
-
-    private float computeIbookHorizontalTranslation() {
-        return (float)0.02*getScreenWidth();
-    }
-
     /**overlay translation computation methods**/
     private float computeOverlayHorizontalTranslation() {
         return (float)(0.5*getScreenWidth()) -
@@ -294,16 +213,6 @@ public class CameraPreview extends WebcamPreview {
         return (float)0.85*getScreenWidth()/(float)bmpOverlayLines.getWidth();
     }
 
-    /**screen to ibook ratio computation methods**/
-    private float computeScreenToIbookWidthRatio() {
-        float screenToIbookWidthRatio = getScreenWidth()/bmpIbook.getWidth()/20;
-            return screenToIbookWidthRatio;
-    }
-
-    private float computeScreenToIbookHeightRatio() {
-        return getScreenHeight()/bmpIbook.getHeight()/20;
-    }
-
     /**adjusted video feed dimensions computation methods**/
     private float computeAdjustedVideoFeedHeight() {
         return computeScreenToFeedHeightRatio()*bmpVideoFeed.getHeight();
@@ -320,15 +229,6 @@ public class CameraPreview extends WebcamPreview {
 
     private float computeAdjustedOverlayWidth() {
         return computeScreenToOverlayWidthRatio()*bmpOverlayLines.getWidth();
-    }
-
-    /**adjusted ibook dimensions computation methods**/
-    private float computeAdjustedIbookHeight() {
-        return computeScreenToIbookHeightRatio()*bmpIbook.getHeight();
-    }
-
-    private float computeAdjustedIbookWidth() {
-        return computeScreenToIbookWidthRatio()*bmpIbook.getWidth();
     }
 
     /**get screen dimensions methods**/
@@ -353,11 +253,6 @@ public class CameraPreview extends WebcamPreview {
         if(bmpOverlayLines == null){
             bmpOverlayLines = BitmapFactory.decodeResource(getResources(),
                     R.drawable.overlay);
-        }
-
-        if(bmpIbook == null){
-            bmpIbook = BitmapFactory.decodeResource(getResources(),
-                    R.drawable.ibook);
         }
 
         if(bmpDynamicLines == null){
