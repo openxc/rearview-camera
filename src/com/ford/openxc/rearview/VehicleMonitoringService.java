@@ -11,12 +11,11 @@ import android.util.Log;
 
 import com.openxc.VehicleManager;
 import com.openxc.measurements.Measurement;
-import com.openxc.measurements.SteeringWheelAngle;
 import com.openxc.measurements.TransmissionGearPosition;
 import com.openxc.measurements.UnrecognizedMeasurementTypeException;
 import com.openxc.remote.VehicleServiceException;
 
-/** Listens for changes in gear position and steering angle from the vehicle.
+/** Listens for changes in gear position from the vehicle.
  *
  * This services binds with OpenXC's VehicleManager and takes care of monitoring
  * the state of the vehicle for the RearviewCamera application.
@@ -32,7 +31,6 @@ public class VehicleMonitoringService extends Service {
 
     private final Handler mHandler = new Handler();
     private VehicleManager mVehicleManager;
-    public static double SteeringWheelAngle;
 
     TransmissionGearPosition.Listener mTransmissionGearPos =
         new TransmissionGearPosition.Listener() {
@@ -73,19 +71,6 @@ public class VehicleMonitoringService extends Service {
             }
         };
 
-    SteeringWheelAngle.Listener mSteeringWheelListener =
-        new SteeringWheelAngle.Listener() {
-            public void receive(Measurement measurement) {
-                final SteeringWheelAngle angle =
-                        (SteeringWheelAngle) measurement;
-                mHandler.post(new Runnable() {
-                    public void run() {
-                        SteeringWheelAngle = angle.getValue().doubleValue();
-                    }
-                });
-            }
-        };
-
     ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className,
                 IBinder service) {
@@ -96,8 +81,6 @@ public class VehicleMonitoringService extends Service {
             try {
                 mVehicleManager.addListener(TransmissionGearPosition.class,
                         mTransmissionGearPos);
-                mVehicleManager.addListener(SteeringWheelAngle.class,
-                        mSteeringWheelListener);
             } catch(VehicleServiceException e) {
                 Log.w(TAG, "Couldn't add listeners for measurements", e);
             } catch(UnrecognizedMeasurementTypeException e) {

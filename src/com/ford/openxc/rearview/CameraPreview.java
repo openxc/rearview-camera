@@ -1,18 +1,24 @@
 package com.ford.openxc.rearview;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.os.IBinder;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
 import com.ford.openxc.webcam.WebcamPreview;
+import com.openxc.NoValueException;
+import com.openxc.VehicleManager;
+import com.openxc.measurements.SteeringWheelAngle;
+import com.openxc.measurements.UnrecognizedMeasurementTypeException;
 
 /** Creates bitmap image showing video feed with graphic overlays.
  *
@@ -40,13 +46,18 @@ public class CameraPreview extends WebcamPreview {
     private Bitmap bmpVideoFeed=null;
     private Bitmap bmpOverlayLines=null;
     private Bitmap bmpDynamicLines=null;
+    private VehicleManager mVehicleManager;
 
     public CameraPreview(Context context) {
         super(context);
+        context.bindService(new Intent(context, VehicleManager.class),
+                mConnection, Context.BIND_AUTO_CREATE);
     }
 
     public CameraPreview(Context context, AttributeSet attrs) {
         super(context, attrs);
+        context.bindService(new Intent(context, VehicleManager.class),
+                mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -69,32 +80,33 @@ public class CameraPreview extends WebcamPreview {
                 bmpVideoFeed = mWebcamManager.getImage();
                 Canvas canvas = mHolder.lockCanvas();
                 if(canvas != null) {
-                    drawVideoFeedBitmap(canvas);
-                    drawOverlayLinesBitmap(canvas);
-                    drawDynamicLinesBitmap(canvas);
+                    canvas.drawBitmap(bmpVideoFeed, createVideoFeedMatrix(), null);
+                    canvas.drawBitmap(bmpOverlayLines, createOverlayMatrix(),
+                            createOverlayPaint());
+                    canvas.drawBitmap(bmpDynamicLines, createDynamicLinesMatrix(),
+                            createDynamicLinesPaint());
                     mHolder.unlockCanvasAndPost(canvas);
                 }
             }
         }
     }
 
-    private void drawVideoFeedBitmap(Canvas canvas) {
-        canvas.drawBitmap(bmpVideoFeed, createVideoFeedMatrix(), null);
-    }
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        super.surfaceCreated(holder);
+        if(bmpOverlayLines == null){
+            bmpOverlayLines = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.overlay);
+        }
 
-    private void drawOverlayLinesBitmap(Canvas canvas) {
-        canvas.drawBitmap(bmpOverlayLines, createOverlayMatrix(),
-                createOverlayPaint());
-    }
-
-    private void drawDynamicLinesBitmap(Canvas canvas) {
-        canvas.drawBitmap(bmpDynamicLines, createDynamicLinesMatrix(),
-                createDynamicLinesPaint());
+        if(bmpDynamicLines == null){
+            bmpDynamicLines = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.dynamiclines);
+        }
     }
 
     /**matrix creation methods**/
     private Matrix createVideoFeedMatrix() {
-
         Matrix videoFeedMatrix = new Matrix();
 
         videoFeedMatrix.preScale(-computeScreenToFeedWidthRatio(),
@@ -108,7 +120,6 @@ public class CameraPreview extends WebcamPreview {
     }
 
     private Matrix createOverlayMatrix() {
-
         Matrix overlayMatrix = new Matrix();
 
         overlayMatrix.preScale(computeScreenToOverlayWidthRatio(),
@@ -120,7 +131,6 @@ public class CameraPreview extends WebcamPreview {
     }
 
     private Matrix createDynamicLinesMatrix() {
-
         //place dynamic lines directly on top of overlay by using same
         //translations/ratios
         float screenToDynamicLinesHeightRatio =
@@ -142,21 +152,21 @@ public class CameraPreview extends WebcamPreview {
 
         //number divided by must be larger than the maximum absolute value the
         //steering wheel can produce because the x skew must be less than 1
-        dynamicLinesMatrix.postSkew(-getSteeringWheelAngle()/480, 0);
+        dynamicLinesMatrix.postSkew((float)-getSteeringWheelAngle()/480, 0);
 
         return dynamicLinesMatrix;
     }
 
     private Paint createOverlayPaint(){
-        float steeringWheelValue = getSteeringWheelAngle();
+        double steeringWheelAngle = getSteeringWheelAngle();
         Paint overlayPaint = new Paint();
 
-        if (steeringWheelValue == 0) {
+        if (steeringWheelAngle == 0) {
             overlayPaint.setAlpha(255);
-        } else if (steeringWheelValue/2 > 0 && steeringWheelValue/2 <=255) {
-            overlayPaint.setAlpha(255-(int)steeringWheelValue/2);
-        } else if (steeringWheelValue/2 < 0 && steeringWheelValue/2 >= -255) {
-            overlayPaint.setAlpha(255+(int)steeringWheelValue/2);
+        } else if (steeringWheelAngle / 2 > 0 && steeringWheelAngle / 2 <= 255) {
+            overlayPaint.setAlpha(255 - (int)steeringWheelAngle / 2);
+        } else if (steeringWheelAngle / 2 < 0 && steeringWheelAngle/2 >= -255) {
+            overlayPaint.setAlpha(255 + (int)steeringWheelAngle / 2);
         } else {
             overlayPaint.setAlpha(0);
         }
@@ -164,24 +174,31 @@ public class CameraPreview extends WebcamPreview {
         return overlayPaint;
     }
 
-    private Paint createDynamicLinesPaint() {
-        float steeringWheelValue = getSteeringWheelAngle();
-        Paint dynamicLinesPaint = new Paint();
-
-        if (steeringWheelValue >= 0 && steeringWheelValue < 255){
-            dynamicLinesPaint.setAlpha((int)steeringWheelValue);
-        } else if (steeringWheelValue < 0 && steeringWheelValue > -255){
-            dynamicLinesPaint.setAlpha(-(int)steeringWheelValue);
-        } else {
-            dynamicLinesPaint.setAlpha(255);
+    private double getSteeringWheelAngle() {
+        double steeringWheelAngle = 0;
+        try {
+            if(mVehicleManager != null) {
+                steeringWheelAngle = ((SteeringWheelAngle)mVehicleManager.get(
+                            SteeringWheelAngle.class)).getValue().doubleValue();
+            }
+        } catch(UnrecognizedMeasurementTypeException e) {
+        } catch(NoValueException e) {
         }
-
-        return dynamicLinesPaint;
+        return steeringWheelAngle;
     }
 
-    /**steering wheel angle retrieval method**/
-    private float getSteeringWheelAngle() {
-        return (float) VehicleMonitoringService.SteeringWheelAngle;
+    private Paint createDynamicLinesPaint() {
+        double steeringWheelAngle = getSteeringWheelAngle();
+        Paint paint = new Paint();
+
+        if (steeringWheelAngle >= 0 && steeringWheelAngle < 255){
+            paint.setAlpha((int)steeringWheelAngle);
+        } else if (steeringWheelAngle < 0 && steeringWheelAngle > -255){
+            paint.setAlpha(-(int)steeringWheelAngle);
+        } else {
+            paint.setAlpha(255);
+        }
+        return paint;
     }
 
     /**overlay translation computation methods**/
@@ -247,17 +264,17 @@ public class CameraPreview extends WebcamPreview {
         Log.i(TAG, "No Camera Detected Intent Broadcasted");
     }
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        super.surfaceCreated(holder);
-        if(bmpOverlayLines == null){
-            bmpOverlayLines = BitmapFactory.decodeResource(getResources(),
-                    R.drawable.overlay);
+    ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className,
+                IBinder service) {
+            Log.i(TAG, "Bound to VehicleManager");
+            mVehicleManager = ((VehicleManager.VehicleBinder)service
+                    ).getService();
         }
 
-        if(bmpDynamicLines == null){
-            bmpDynamicLines = BitmapFactory.decodeResource(getResources(),
-                    R.drawable.dynamiclines);
+        public void onServiceDisconnected(ComponentName className) {
+            Log.w(TAG, "VehicleService disconnected unexpectedly");
+            mVehicleManager = null;
         }
-    }
+    };
 }
