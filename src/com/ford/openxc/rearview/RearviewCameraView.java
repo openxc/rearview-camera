@@ -36,11 +36,10 @@ import com.openxc.measurements.UnrecognizedMeasurementTypeException;
  * The JNI implementation is based off of the "simple-web-cam" project:
  * https://bitbucket.org/neuralassembly/simplewebcam from neuralassembly.
 */
-public class CameraPreview extends WebcamPreview {
+public class RearviewCameraView extends WebcamPreview {
 
-    private static String TAG = "CameraPreview";
+    private static String TAG = "RearviewCameraView";
 
-    public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
     public static final String NO_CAMERA_DETECTED = "com.ford.openxc.NO_CAMERA_DETECTED";
 
     private Bitmap bmpVideoFeed=null;
@@ -48,13 +47,13 @@ public class CameraPreview extends WebcamPreview {
     private Bitmap bmpDynamicLines=null;
     private VehicleManager mVehicleManager;
 
-    public CameraPreview(Context context) {
+    public RearviewCameraView(Context context) {
         super(context);
         context.bindService(new Intent(context, VehicleManager.class),
                 mConnection, Context.BIND_AUTO_CREATE);
     }
 
-    public CameraPreview(Context context, AttributeSet attrs) {
+    public RearviewCameraView(Context context, AttributeSet attrs) {
         super(context, attrs);
         context.bindService(new Intent(context, VehicleManager.class),
                 mConnection, Context.BIND_AUTO_CREATE);

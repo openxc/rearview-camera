@@ -30,19 +30,16 @@ import android.util.Log;
 public class RearviewCameraActivity extends Activity {
 
     private final static String TAG = "RearviewCameraActivity";
-    private static boolean activityRunning=false;
-    CameraPreview cp;
+    private static boolean mRunning = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        activityRunning = true;
-        cp = new CameraPreview(this);
-        setContentView(cp);
-        startVehicleMonitoringService();
-        registerVehicleUnreversedCloseReceiver();
-        registerUsbDetachedCloseReceiver();
+        setContentView(R.layout.main);
+        Intent VehicleMonitoringServiceIntent = new Intent(
+                RearviewCameraActivity.this, VehicleMonitoringService.class);
+        startService(VehicleMonitoringServiceIntent);
+        Log.i(TAG, "Starting Service from RearviewCameraActivity");
     }
 
 
@@ -66,52 +63,38 @@ public class RearviewCameraActivity extends Activity {
     @Override
     public void onPause() {
         super.onPause();
-        activityRunning = false;
+        mRunning = false;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        activityRunning = true;
-        registerVehicleUnreversedCloseReceiver();
-        registerUsbDetachedCloseReceiver();
-    }
+        mRunning = true;
 
-    @Override
-    public void onDestroy(){
-        super.onDestroy();
-        activityRunning = false;
-        unregisterReceiver(usbCloseReceiver);
-        unregisterReceiver(vehicleUnreversedCloseReceiver);
-    }
+        IntentFilter closeFilter = new IntentFilter();
+        closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
+        registerReceiver(vehicleUnreversedCloseReceiver, closeFilter);
 
-    public void startVehicleMonitoringService() {
-        Intent VehicleMonitoringServiceIntent = new Intent(
-                RearviewCameraActivity.this, VehicleMonitoringService.class);
-        startService(VehicleMonitoringServiceIntent);
-        Log.i(TAG, "Starting Service from RearviewCameraActivity");
-    }
-
-    private void registerUsbDetachedCloseReceiver() {
         IntentFilter usbFilter = new IntentFilter();
         usbFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         usbFilter.addAction("com.ford.openxc.NO_CAMERA_DETECTED");
         registerReceiver(usbCloseReceiver, usbFilter);
     }
 
-    private void registerVehicleUnreversedCloseReceiver() {
-        IntentFilter closeFilter = new IntentFilter();
-        closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
-        registerReceiver(vehicleUnreversedCloseReceiver, closeFilter);
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        mRunning = false;
+        unregisterReceiver(usbCloseReceiver);
+        unregisterReceiver(vehicleUnreversedCloseReceiver);
     }
 
-    public void finish() {
-        super.finish();
-        activityRunning = false;
+    public static boolean isRunning() {
+        return mRunning;
     }
 
-    public void usbError(){
-        if (isRunning() == true) {
+    private void usbError(){
+        if (isRunning()) {
             Vibrator vibrator = (Vibrator) this.getSystemService(
                     Context.VIBRATOR_SERVICE);
             vibrator.vibrate(2000);
@@ -123,17 +106,12 @@ public class RearviewCameraActivity extends Activity {
                 .setCancelable(false)
                 .setNeutralButton("Close", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        activityRunning = false;
+                        mRunning = false;
                         android.os.Process.killProcess(android.os.Process.myPid());
                     }
                 }).show();
-        }
-        else if (isRunning() == false) {
+        } else if (!isRunning()) {
             android.os.Process.killProcess(android.os.Process.myPid());
         }
-    }
-
-    public static boolean isRunning() {
-        return activityRunning;
     }
 }

@@ -32,7 +32,7 @@ public class VehicleMonitoringService extends Service {
     private final Handler mHandler = new Handler();
     private VehicleManager mVehicleManager;
 
-    TransmissionGearPosition.Listener mTransmissionGearPos =
+    TransmissionGearPosition.Listener mTransmissionListener =
         new TransmissionGearPosition.Listener() {
             public void receive(Measurement measurement) {
                 final TransmissionGearPosition status =
@@ -80,7 +80,7 @@ public class VehicleMonitoringService extends Service {
 
             try {
                 mVehicleManager.addListener(TransmissionGearPosition.class,
-                        mTransmissionGearPos);
+                        mTransmissionListener);
             } catch(VehicleServiceException e) {
                 Log.w(TAG, "Couldn't add listeners for measurements", e);
             } catch(UnrecognizedMeasurementTypeException e) {
