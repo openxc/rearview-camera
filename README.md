@@ -107,3 +107,8 @@ disconnect in order to restart the VehicleMonitoringService (see below).
 
 It is recommended that you check the enabler or VehicleDashboard in order
 to ensure that messages are flowing from the CAN Translator.
+
+## License
+
+Copyright (c) 2012-2013 Ford Motor Company
+Licensed under the BSD license.
