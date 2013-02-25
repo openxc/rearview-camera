@@ -37,83 +37,54 @@ import com.openxc.measurements.UnrecognizedMeasurementTypeException;
  * https://bitbucket.org/neuralassembly/simplewebcam from neuralassembly.
 */
 public class RearviewCameraView extends WebcamPreview {
-
     private static String TAG = "RearviewCameraView";
 
-    public static final String NO_CAMERA_DETECTED = "com.ford.openxc.NO_CAMERA_DETECTED";
-
-    private Bitmap bmpVideoFeed=null;
-    private Bitmap bmpOverlayLines=null;
-    private Bitmap bmpDynamicLines=null;
+    private Bitmap mOverlayLinesBitmap = null;
+    private Bitmap mSteeringAngleLinesBitmap = null;
     private VehicleManager mVehicleManager;
 
     public RearviewCameraView(Context context) {
         super(context);
-        context.bindService(new Intent(context, VehicleManager.class),
-                mConnection, Context.BIND_AUTO_CREATE);
+        init();
     }
 
     public RearviewCameraView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        context.bindService(new Intent(context, VehicleManager.class),
-                mConnection, Context.BIND_AUTO_CREATE);
+        init();
     }
 
-    @Override
-    public void run() {
-        while(mRunning) {
-            synchronized(mServiceSyncToken) {
-                if(mWebcamManager == null) {
-                    try {
-                        mServiceSyncToken.wait();
-                    } catch(InterruptedException e) {
-                        break;
-                    }
-                }
+    private void init() {
+        mOverlayLinesBitmap = BitmapFactory.decodeResource(getResources(),
+                R.drawable.overlay);
+        mSteeringAngleLinesBitmap = BitmapFactory.decodeResource(getResources(),
+                R.drawable.dynamiclines);
+    }
 
-                if(!mWebcamManager.cameraAttached()) {
-                    mRunning = false;
-                    sendNoCameraDetectedBroadcast();
-                }
-
-                bmpVideoFeed = mWebcamManager.getImage();
-                Canvas canvas = mHolder.lockCanvas();
-                if(canvas != null) {
-                    canvas.drawBitmap(bmpVideoFeed, createVideoFeedMatrix(), null);
-                    canvas.drawBitmap(bmpOverlayLines, createOverlayMatrix(),
-                            createOverlayPaint());
-                    canvas.drawBitmap(bmpDynamicLines, createDynamicLinesMatrix(),
-                            createDynamicLinesPaint());
-                    mHolder.unlockCanvasAndPost(canvas);
-                }
-            }
-        }
+    protected void drawOnCanvas(Canvas canvas, Bitmap videoBitmap) {
+        canvas.drawBitmap(videoBitmap, createVideoFeedMatrix(videoBitmap),
+                null);
+        canvas.drawBitmap(mOverlayLinesBitmap, createOverlayMatrix(),
+                createOverlayPaint());
+        canvas.drawBitmap(mSteeringAngleLinesBitmap, createDynamicLinesMatrix(),
+                createDynamicLinesPaint());
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         super.surfaceCreated(holder);
-        if(bmpOverlayLines == null){
-            bmpOverlayLines = BitmapFactory.decodeResource(getResources(),
-                    R.drawable.overlay);
-        }
-
-        if(bmpDynamicLines == null){
-            bmpDynamicLines = BitmapFactory.decodeResource(getResources(),
-                    R.drawable.dynamiclines);
-        }
+        getContext().bindService(new Intent(getContext(), VehicleManager.class),
+                mVehicleConnection, Context.BIND_AUTO_CREATE);
     }
 
-    /**matrix creation methods**/
-    private Matrix createVideoFeedMatrix() {
+    private Matrix createVideoFeedMatrix(Bitmap bitmap) {
         Matrix videoFeedMatrix = new Matrix();
 
-        videoFeedMatrix.preScale(-computeScreenToFeedWidthRatio(),
-                computeScreenToFeedHeightRatio());
-        videoFeedMatrix.postTranslate((float)(0.5*getScreenWidth()) +
-                    (float)(0.5*computeAdjustedVideoFeedWidth()),
-                (float)(0.5*getScreenHeight()) -
-                    (float)(0.5*computeAdjustedVideoFeedHeight()));
+        videoFeedMatrix.preScale(-computeScreenToFeedWidthRatio(bitmap),
+                computeScreenToFeedHeightRatio(bitmap));
+        videoFeedMatrix.postTranslate((float)(0.5 * getScreenWidth() +
+                    (0.5 * computeAdjustedVideoFeedWidth(bitmap))),
+                (float)((0.5 * getScreenHeight()) -
+                    (0.5 * computeAdjustedVideoFeedHeight(bitmap))));
 
         return videoFeedMatrix;
     }
@@ -151,7 +122,7 @@ public class RearviewCameraView extends WebcamPreview {
 
         //number divided by must be larger than the maximum absolute value the
         //steering wheel can produce because the x skew must be less than 1
-        dynamicLinesMatrix.postSkew((float)-getSteeringWheelAngle()/480, 0);
+        dynamicLinesMatrix.postSkew((float) -getSteeringWheelAngle() / 480, 0);
 
         return dynamicLinesMatrix;
     }
@@ -163,9 +134,9 @@ public class RearviewCameraView extends WebcamPreview {
         if (steeringWheelAngle == 0) {
             overlayPaint.setAlpha(255);
         } else if (steeringWheelAngle / 2 > 0 && steeringWheelAngle / 2 <= 255) {
-            overlayPaint.setAlpha(255 - (int)steeringWheelAngle / 2);
-        } else if (steeringWheelAngle / 2 < 0 && steeringWheelAngle/2 >= -255) {
-            overlayPaint.setAlpha(255 + (int)steeringWheelAngle / 2);
+            overlayPaint.setAlpha((int)(255 - steeringWheelAngle / 2));
+        } else if (steeringWheelAngle / 2 < 0 && steeringWheelAngle / 2 >= -255) {
+            overlayPaint.setAlpha((int)(255 + steeringWheelAngle / 2));
         } else {
             overlayPaint.setAlpha(0);
         }
@@ -187,13 +158,13 @@ public class RearviewCameraView extends WebcamPreview {
     }
 
     private Paint createDynamicLinesPaint() {
-        double steeringWheelAngle = getSteeringWheelAngle();
+        int steeringWheelAngle = (int) getSteeringWheelAngle();
         Paint paint = new Paint();
 
         if (steeringWheelAngle >= 0 && steeringWheelAngle < 255){
-            paint.setAlpha((int)steeringWheelAngle);
+            paint.setAlpha(steeringWheelAngle);
         } else if (steeringWheelAngle < 0 && steeringWheelAngle > -255){
-            paint.setAlpha(-(int)steeringWheelAngle);
+            paint.setAlpha(-steeringWheelAngle);
         } else {
             paint.setAlpha(255);
         }
@@ -202,68 +173,63 @@ public class RearviewCameraView extends WebcamPreview {
 
     /**overlay translation computation methods**/
     private float computeOverlayHorizontalTranslation() {
-        return (float)(0.5*getScreenWidth()) -
-                (float)(0.5*computeAdjustedOverlayWidth());
+        return (float)((0.5 * getScreenWidth()) -
+                (0.5 * computeAdjustedOverlayWidth()));
     }
 
     private float computeOverlayVerticalTranslation() {
-        return (float)(0.5*getScreenHeight()) -
-                (float)(0.3*computeAdjustedOverlayHeight());
-    }
-
-    /**screen to video feed ratio computation methods**/
-    private float computeScreenToFeedHeightRatio() {
-         return getScreenHeight() / bmpVideoFeed.getHeight();
-    }
-
-    private float computeScreenToFeedWidthRatio() {
-        return getScreenWidth()/(float)bmpVideoFeed.getWidth();
+        return (float)((0.5 * getScreenHeight()) -
+                (0.3 * computeAdjustedOverlayHeight()));
     }
 
     /**screen to overlay ratio computation methods**/
     private float computeScreenToOverlayHeightRatio() {
-        return (float)0.5*getScreenHeight()/(float)bmpOverlayLines.getHeight();
+        return (float)(0.5 * getScreenHeight() /
+                mOverlayLinesBitmap.getHeight());
     }
 
     private float computeScreenToOverlayWidthRatio() {
-        return (float)0.85*getScreenWidth()/(float)bmpOverlayLines.getWidth();
+        return (float)(0.85 * getScreenWidth() /
+                mOverlayLinesBitmap.getWidth());
+    }
+
+    /**screen to video feed ratio computation methods**/
+    private float computeScreenToFeedHeightRatio(Bitmap bitmap) {
+         return getScreenHeight() / bitmap.getHeight();
+    }
+
+    private float computeScreenToFeedWidthRatio(Bitmap bitmap) {
+        return getScreenWidth() / bitmap.getWidth();
     }
 
     /**adjusted video feed dimensions computation methods**/
-    private float computeAdjustedVideoFeedHeight() {
-        return computeScreenToFeedHeightRatio()*bmpVideoFeed.getHeight();
+    private float computeAdjustedVideoFeedHeight(Bitmap bitmap) {
+        return computeScreenToFeedHeightRatio(bitmap) * bitmap.getHeight();
     }
 
-    private float computeAdjustedVideoFeedWidth() {
-        return computeScreenToFeedWidthRatio()*bmpVideoFeed.getWidth();
+    private float computeAdjustedVideoFeedWidth(Bitmap bitmap) {
+        return computeScreenToFeedWidthRatio(bitmap) * bitmap.getWidth();
     }
 
     /**adjusted overlay dimensions computation methods**/
     private float computeAdjustedOverlayHeight() {
-        return computeScreenToOverlayHeightRatio()*bmpOverlayLines.getHeight();
+        return computeScreenToOverlayHeightRatio()*mOverlayLinesBitmap.getHeight();
     }
 
     private float computeAdjustedOverlayWidth() {
-        return computeScreenToOverlayWidthRatio()*bmpOverlayLines.getWidth();
+        return computeScreenToOverlayWidthRatio()*mOverlayLinesBitmap.getWidth();
     }
 
     /**get screen dimensions methods**/
     private float getScreenHeight() {
-        return mContext.getResources().getDisplayMetrics().heightPixels;
+        return getContext().getResources().getDisplayMetrics().heightPixels;
     }
 
     private float getScreenWidth() {
-        return mContext.getResources().getDisplayMetrics().widthPixels;
+        return getContext().getResources().getDisplayMetrics().widthPixels;
     }
 
-    /**send broadcast method**/
-    private void sendNoCameraDetectedBroadcast() {
-        Intent noCameraDetectedIntent = new Intent(NO_CAMERA_DETECTED);
-        mContext.sendBroadcast(noCameraDetectedIntent);
-        Log.i(TAG, "No Camera Detected Intent Broadcasted");
-    }
-
-    ServiceConnection mConnection = new ServiceConnection() {
+    private ServiceConnection mVehicleConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className,
                 IBinder service) {
             Log.i(TAG, "Bound to VehicleManager");
