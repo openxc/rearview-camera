@@ -1,15 +1,11 @@
 package com.ford.openxc.rearview;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.util.Log;
 
 /** Primary entry point and activity for the RearviewCamera application.
