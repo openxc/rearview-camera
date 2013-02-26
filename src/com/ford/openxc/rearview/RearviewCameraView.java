@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.os.IBinder;
@@ -61,6 +62,7 @@ public class RearviewCameraView extends WebcamPreview {
     }
 
     protected void drawOnCanvas(Canvas canvas, Bitmap videoBitmap) {
+        canvas.drawColor(Color.BLACK);
         canvas.drawBitmap(videoBitmap, createVideoFeedMatrix(videoBitmap),
                 null);
         canvas.drawBitmap(mOverlayLinesBitmap, createOverlayMatrix(),
