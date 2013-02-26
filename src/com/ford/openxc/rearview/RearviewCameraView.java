@@ -74,8 +74,15 @@ public class RearviewCameraView extends WebcamPreview {
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         super.surfaceCreated(holder);
+        // TODO this is being leaked, does surfaceDestroyed not get called?
         getContext().bindService(new Intent(getContext(), VehicleManager.class),
                 mVehicleConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        super.surfaceDestroyed(holder);
+        getContext().unbindService(mVehicleConnection);
     }
 
     private Matrix createVideoFeedMatrix(Bitmap bitmap) {

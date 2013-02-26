@@ -26,8 +26,8 @@ import com.openxc.remote.VehicleServiceException;
  */
 public class VehicleMonitoringService extends Service {
     private final static String TAG = "VehicleMonitoringService";
-    public static final String ACTION_VEHICLE_REVERSED = "com.ford.openxc.VEHICLE_REVERSED";
-    public static final String ACTION_VEHICLE_UNREVERSED = "com.ford.openxc.VEHICLE_UNREVERSED";
+    public static final String ACTION_VEHICLE_UNREVERSED =
+            "com.ford.openxc.VEHICLE_UNREVERSED";
 
     private final Handler mHandler = new Handler();
     private VehicleManager mVehicleManager;
@@ -52,20 +52,17 @@ public class VehicleMonitoringService extends Service {
                     }
 
                     private void startRearviewCameraActivity() {
-                        Intent launchIntent = new Intent(
+                        Intent intent = new Intent(
                                 VehicleMonitoringService.this,
                                 RearviewCameraActivity.class);
-                        launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        VehicleMonitoringService.this.startActivity(
-                                launchIntent);
-                        Log.i(TAG, "Activity Launched from Vehicle Monitoring Service");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        VehicleMonitoringService.this.startActivity(intent);
                     }
 
                     private void sendVehicleUnreversedBroadcast() {
                         Intent unreversedIntent = new Intent(
                                 ACTION_VEHICLE_UNREVERSED);
                         sendBroadcast(unreversedIntent);
-                        Log.i(TAG, "Vehicle UNREVERSED Broadcast Intent Sent");
                     }
                 });
             }

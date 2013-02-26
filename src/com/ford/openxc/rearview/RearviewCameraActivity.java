@@ -13,19 +13,13 @@ import android.util.Log;
  * If it's not already started (as a result of the BootupReceiver), this
  * activity starts the VehicleMonitoringService.
  *
- * It receives two types of broadcasts:
- *
- * It listens for broadcasts of a USB device being detached. If this device is
- * the USB camera, the activity wanrs the users with a modal dialog, so they
- * don't mistakenly believe the camera is working when in fact it is detached.
- *
  * It listenes for a broadcast sent when the vehicle shifts out of "reverse"
  * into another gear, and stops displaying the video feed. The activity will
  * exit.
  */
 public class RearviewCameraActivity extends Activity {
-
     private final static String TAG = "RearviewCameraActivity";
+
     private static boolean mRunning = false;
 
     @Override
@@ -38,21 +32,11 @@ public class RearviewCameraActivity extends Activity {
         Log.i(TAG, "Starting Service from RearviewCameraActivity");
     }
 
-
     BroadcastReceiver vehicleUnreversedCloseReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "Leaving rearview camera, received unreversed signal");
             finish();
-        }
-    };
-
-    BroadcastReceiver usbCloseReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.w("USB ERROR", "USB Device Detached");
-            // TODO check the class of device to see if it was a webcam, and put
-            // that in the device filter if we can
-            usbError();
         }
     };
 
@@ -67,47 +51,19 @@ public class RearviewCameraActivity extends Activity {
         super.onResume();
         mRunning = true;
 
-        IntentFilter closeFilter = new IntentFilter();
-        closeFilter.addAction("com.ford.openxc.VEHICLE_UNREVERSED");
-        registerReceiver(vehicleUnreversedCloseReceiver, closeFilter);
-
-        IntentFilter usbFilter = new IntentFilter();
-        usbFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        usbFilter.addAction("com.ford.openxc.NO_CAMERA_DETECTED");
-        registerReceiver(usbCloseReceiver, usbFilter);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(VehicleMonitoringService.ACTION_VEHICLE_UNREVERSED);
+        registerReceiver(vehicleUnreversedCloseReceiver, filter);
     }
 
     @Override
     public void onDestroy(){
         super.onDestroy();
         mRunning = false;
-        unregisterReceiver(usbCloseReceiver);
         unregisterReceiver(vehicleUnreversedCloseReceiver);
     }
 
     public static boolean isRunning() {
         return mRunning;
-    }
-
-    private void usbError(){
-        if (isRunning()) {
-            Vibrator vibrator = (Vibrator) this.getSystemService(
-                    Context.VIBRATOR_SERVICE);
-            vibrator.vibrate(2000);
-            new AlertDialog.Builder(this)
-                .setTitle("USB Device Unplugged!")
-                .setMessage("RearviewCamera is exiting because a USB device " +
-                        "was detached - relaunch the app after plugging " +
-                        "it in again")
-                .setCancelable(false)
-                .setNeutralButton("Close", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        mRunning = false;
-                        android.os.Process.killProcess(android.os.Process.myPid());
-                    }
-                }).show();
-        } else if (!isRunning()) {
-            android.os.Process.killProcess(android.os.Process.myPid());
-        }
     }
 }
