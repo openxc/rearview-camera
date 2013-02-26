@@ -40,8 +40,8 @@ import com.openxc.measurements.UnrecognizedMeasurementTypeException;
 public class RearviewCameraView extends WebcamPreview {
     private static String TAG = "RearviewCameraView";
 
-    private Bitmap mOverlayLinesBitmap = null;
-    private Bitmap mSteeringAngleLinesBitmap = null;
+    private static Bitmap sOverlayLinesBitmap = null;
+    private static Bitmap sSteeringAngleLinesBitmap = null;
     private VehicleManager mVehicleManager;
 
     public RearviewCameraView(Context context) {
@@ -55,19 +55,24 @@ public class RearviewCameraView extends WebcamPreview {
     }
 
     private void init() {
-        mOverlayLinesBitmap = BitmapFactory.decodeResource(getResources(),
-                R.drawable.overlay);
-        mSteeringAngleLinesBitmap = BitmapFactory.decodeResource(getResources(),
-                R.drawable.dynamiclines);
+        if(sOverlayLinesBitmap == null) {
+            sOverlayLinesBitmap = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.overlay);
+        }
+
+        if(sSteeringAngleLinesBitmap == null) {
+            sSteeringAngleLinesBitmap = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.dynamiclines);
+        }
     }
 
     protected void drawOnCanvas(Canvas canvas, Bitmap videoBitmap) {
         canvas.drawColor(Color.BLACK);
         canvas.drawBitmap(videoBitmap, createVideoFeedMatrix(videoBitmap),
                 null);
-        canvas.drawBitmap(mOverlayLinesBitmap, createOverlayMatrix(),
+        canvas.drawBitmap(sOverlayLinesBitmap, createOverlayMatrix(),
                 createOverlayPaint());
-        canvas.drawBitmap(mSteeringAngleLinesBitmap, createDynamicLinesMatrix(),
+        canvas.drawBitmap(sSteeringAngleLinesBitmap, createDynamicLinesMatrix(),
                 createDynamicLinesPaint());
     }
 
@@ -194,12 +199,12 @@ public class RearviewCameraView extends WebcamPreview {
     /**screen to overlay ratio computation methods**/
     private float computeScreenToOverlayHeightRatio() {
         return (float)(0.5 * getScreenHeight() /
-                mOverlayLinesBitmap.getHeight());
+                sOverlayLinesBitmap.getHeight());
     }
 
     private float computeScreenToOverlayWidthRatio() {
         return (float)(0.85 * getScreenWidth() /
-                mOverlayLinesBitmap.getWidth());
+                sOverlayLinesBitmap.getWidth());
     }
 
     /**screen to video feed ratio computation methods**/
@@ -222,11 +227,11 @@ public class RearviewCameraView extends WebcamPreview {
 
     /**adjusted overlay dimensions computation methods**/
     private float computeAdjustedOverlayHeight() {
-        return computeScreenToOverlayHeightRatio()*mOverlayLinesBitmap.getHeight();
+        return computeScreenToOverlayHeightRatio()*sOverlayLinesBitmap.getHeight();
     }
 
     private float computeAdjustedOverlayWidth() {
-        return computeScreenToOverlayWidthRatio()*mOverlayLinesBitmap.getWidth();
+        return computeScreenToOverlayWidthRatio()*sOverlayLinesBitmap.getWidth();
     }
 
     /**get screen dimensions methods**/
