@@ -15,11 +15,11 @@ current gear and the support for [USB webcams][USB webcam] in most Android
 devices, you can make an aftermarket system relatively inexpensively.
 
 **Disclaimer** This application is intended to be used with a display device
-that has a fixed, preferably permanent location in the vehicle. For example,
-mounted on the dash. Never mount anything on the dash such that the driver's
+that has a fixed, preferably permanent location in the vehicle (mounted on the
+dashboard, for example). Never mount anything on the dash such that the driver's
 view is impeded. While the rearview camera application may help increase
 visibility, the OpenXC platform does not make any claims of a safety benefit.
-This application is inteded as a proof-of-concept.
+This application is intended as a proof-of-concept.
 
 ## Dependencies
 
@@ -30,7 +30,7 @@ This application is inteded as a proof-of-concept.
    can [access UVC video devices](#android-usb-webcam).
 * [USB Webcam][] supporting UVC and a 640x480 resolution in the YUYV format.
 * [OpenXC Vehicle
-   Interface](https://openxcplatform.com/vehicle-interface/index.html) with
+   Interface](https://openxcplatform.com/vehicle-interface/index.html) (VI) with
    vehicle-specific firmware
 * [OpenXC-supported
    vehicle](http://openxcplatform.com/vehicle-interface/output-format.html)
@@ -50,12 +50,12 @@ This application is inteded as a proof-of-concept.
 
 1. Install the [OpenXC
    Enabler](http://openxcplatform.com/getting-started/library-installation.html#enabler) to the device.
-1. Run `ndk-build` in the `rearview-camera` project folder to compile the native
+1. Run `ndk-build` in the `android-webcam` project folder to compile the native
    camera library.
 1. Install the `RearviewCamera` application to the device.
-1. Start the app once, then restart device to make sure the `RearviewCamera`
-   service is properly registered to begin at bootup and start moniotirng the
-   gear position.
+1. Start the app once, then restart device to make sure the
+   `VehicleMonitoringService` service is properly registered to begin at bootup
+   and start monitoring the gear position.
 1. Mount the Android device where it will be secure and visible to the driver
    when backing up, but not in the way of normal driving.
 1. Mount the USB webcam on the rear of the vehicle, possible attached to the
@@ -65,7 +65,13 @@ This application is inteded as a proof-of-concept.
 1. Assuming the VI is attached to the OBD-II port, connect the tablet to it via
    USB or Bluetooth.
 
-You're now ready to test.
+**With Maven:**
+
+Follow the directions to install the [Android Webcam
+library](https://github.com/openxc/android-webcam), then:
+
+    $ cd rearview-camera
+    $ mvn package android:deploy android:run
 
 ## Functionality
 
@@ -85,28 +91,6 @@ attention to the more extreme measurements.
 
 When you shift out of `reverse` into `drive` or any other gear, the camera feed
 will shut off.
-
-## Relaunching the Application
-
-Again with safety as a top priority, the application is designed to close
-itself and display a warning message if one of the USB devices is unplugged.
-The reason? If the camera accidentally came unplugged, the user would see the
-last video frame that was captured. If this occurred while the driver was
-reversing, the user might think that nothing was behind the vehicle when in
-fact something has entered its path, which would be the result of the video
-feed not updating. Or, on the other hand, if the Android device is
-disconnected from the CAN Translator, the angle of the steering wheel would
-not continue to be updated and thus yield a worse approximation to the
-potential path of the vehicle. In addition, the app would not be able to
-continue responding to the status of the transmission, and thus the app would
-not close/launch as intended. The user might think the tablet or application
-has frozen, when in fact a cable was simply unplugged.
-
-Currently, the app must be relaunched manually the first time after a
-disconnect in order to restart the VehicleMonitoringService (see below).
-
-It is recommended that you check the enabler or VehicleDashboard in order
-to ensure that messages are flowing from the CAN Translator.
 
 ## License
 
