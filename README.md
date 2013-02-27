@@ -12,9 +12,9 @@ United states, [starting in
 2014](http://www.nytimes.com/2012/02/28/business/us-rule-set-for-cameras-at-cars-rear.html?_r=0).
 What about all the existing cars on the road? Using OpenXC to determine the
 current gear and the support for [USB webcams][USB webcam] in most Android
-devices, you can make an aftermarket system relatively inexpensively.
+devices, you can make a relatively inexpensive aftermarket system.
 
-**Disclaimer** This application is intended to be used with a display device
+**Disclaimer:** This application is intended to be used with a display device
 that has a fixed, preferably permanent location in the vehicle (mounted on the
 dashboard, for example). Never mount anything on the dash such that the driver's
 view is impeded. While the rearview camera application may help increase
@@ -80,8 +80,11 @@ The app continuously reads vehicle data from the VI and watches for changes in
 
 When the gear position changes to `reverse`, the RearviewCamera app will launch
 a video display from the camera. The display includes guide lines indicating
-relative distance from objects in the video and steering wheel guide lines. Note
-that the video feed is mirrored to mimic the view in the rear view mirror.
+relative distance from objects in the video and guide lines indicating path 
+of travel based on steering wheel angle. Note that the video feed is mirrored 
+to mimic the view in the rear view mirror.
+
+**Animated Guide Lines:**
 
 The guide lines animate in response to changes in the steering wheel angle. They
 illustrate a rough estimate of the path of the vehicle if you continue to move
@@ -89,8 +92,10 @@ with the current steering wheel angle. The ratio of brightness between the guide
 lines and distance measures shift as you turn the wheel more, drawing your
 attention to the more extreme measurements.
 
+**Exit:**
+
 When you shift out of `reverse` into `drive` or any other gear, the camera feed
-will shut off.
+will shut off and the app will minimize.
 
 ## License
 
